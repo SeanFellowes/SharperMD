@@ -36,6 +36,10 @@
         <KeyBinding Key="I" Modifiers="Control" Command="{Binding InsertItalicCommand}"/>
         <KeyBinding Key="K" Modifiers="Control" Command="{Binding InsertLinkCommand}"/>
         <KeyBinding Key="K" Modifiers="Control+Shift" Command="{Binding InsertImageCommand}"/>
+
+        <!-- Toggle edit mode -->
+        <KeyBinding Key="F2" Command="{Binding ToggleEditModeCommand}"/>
+        <KeyBinding Key="E" Modifiers="Control" Command="{Binding ToggleEditModeCommand}"/>
     </Window.InputBindings>
 
     <Grid>
@@ -108,6 +112,8 @@
                 <MenuItem Header="Insert _Horizontal Rule" Command="{Binding InsertHorizontalRuleCommand}"/>
             </MenuItem>
             <MenuItem Header="_View">
+                <MenuItem Header="_Edit Mode" Command="{Binding ToggleEditModeCommand}" InputGestureText="F2" IsCheckable="True" IsChecked="{Binding IsEditing, Mode=OneWay}"/>
+                <Separator/>
                 <MenuItem Header="_Theme">
                     <MenuItem Header="_System (Auto)" Command="{Binding SetThemeCommand}" CommandParameter="system"/>
                     <MenuItem Header="_Light" Command="{Binding SetThemeCommand}" CommandParameter="light"/>
@@ -351,18 +357,40 @@
 
                 <!-- Preview-only view when not editing -->
                 <Grid Visibility="{Binding IsEditing, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- View mode toolbar -->
+                    <Border Grid.Row="0"
+                            Background="{DynamicResource ToolbarBackgroundBrush}"
+                            BorderBrush="{DynamicResource ToolbarBorderBrush}"
+                            BorderThickness="0,0,0,1"
+                            Padding="8,6">
+                        <Grid>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding NewDocumentCommand}" ToolTip="New (Ctrl+N)">
+                                    <TextBlock Text="📄" FontSize="16"/>
+                                </Button>
+                                <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding OpenFileCommand}" ToolTip="Open (Ctrl+O)">
+                                    <TextBlock Text="📂" FontSize="16"/>
+                                </Button>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Content="Edit"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Command="{Binding StartEditingCommand}"
+                                        ToolTip="Edit this document (F2)"
+                                        Padding="16,6"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
                     <wv2:WebView2 x:Name="PreviewOnlyWebView"
+                                  Grid.Row="1"
                                   DefaultBackgroundColor="Transparent"
                                   PreviewMouseWheel="Preview_PreviewMouseWheel"/>
-
-                    <!-- Edit button overlay -->
-                    <Button Content="Edit"
-                            Style="{StaticResource PrimaryButtonStyle}"
-                            Command="{Binding StartEditingCommand}"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Top"
-                            Margin="20"
-                            Padding="20,10"/>
                 </Grid>
             </Grid>
         </Grid>

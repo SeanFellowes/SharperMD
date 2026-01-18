@@ -368,6 +368,19 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void ToggleEditMode()
+    {
+        if (IsEditing)
+        {
+            StopEditing();
+        }
+        else
+        {
+            StartEditing();
+        }
+    }
+
+    [RelayCommand]
     private void Exit()
     {
         if (!CanCloseCurrentDocument()) return;
