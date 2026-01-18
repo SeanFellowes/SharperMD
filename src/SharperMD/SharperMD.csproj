@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>SharperMD</AssemblyName>
+    <RootNamespace>SharperMD</RootNamespace>
+    <Version>1.0.0</Version>
+    <Authors>SharperMD Contributors</Authors>
+    <Company>SharperMD</Company>
+    <Product>SharperMD - Markdown Viewer &amp; Editor</Product>
+    <Description>A beautiful markdown viewer and editor for Windows</Description>
+    <Copyright>Copyright © 2024</Copyright>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Markdown parsing with extensions -->
+    <PackageReference Include="Markdig" Version="0.37.0" />
+
+    <!-- Professional text editor -->
+    <PackageReference Include="AvalonEdit" Version="6.3.0.90" />
+
+    <!-- Chromium-based HTML rendering -->
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.2420.47" />
+
+    <!-- MVVM toolkit -->
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+
+    <!-- JSON settings storage -->
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\MarkdownSyntax.xshd" />
+  </ItemGroup>
+
+</Project>

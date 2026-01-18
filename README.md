@@ -1,2 +1,204 @@
 # SharperMD
-Markdown viewer and editor
+
+A beautiful, full-featured markdown viewer and editor for Windows 10/11, built with C# and WPF.
+
+![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4)
+![Windows](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6)
+![License](https://img.shields.io/badge/License-MIT-green)
+
+## Features
+
+### Core Functionality
+- **View Mode**: Open markdown files for distraction-free reading with beautiful rendering
+- **Edit Mode**: Side-by-side editor and live preview for real-time markdown authoring
+- **Command-line Support**: Open files directly from the command line or file explorer
+
+### Editor Features
+- **Syntax Highlighting**: Markdown-aware syntax highlighting in the editor
+- **Line Numbers**: Toggle line numbers on/off
+- **Word Wrap**: Configurable word wrap
+- **Fixed-width Font**: Uses Cascadia Mono/Consolas for comfortable coding
+- **Formatting Toolbar**: Quick access buttons for bold, italic, headers, lists, links, images, code blocks, and more
+- **Keyboard Shortcuts**: Standard shortcuts for all common operations
+
+### Markdown Support
+- **Headers** (H1-H6)
+- **Bold**, *Italic*, ~~Strikethrough~~
+- Bullet and numbered lists
+- Task lists (checkboxes)
+- Tables (pipe and grid)
+- Code blocks with syntax highlighting (supports 190+ languages including SQL, PowerShell, C#, Bash)
+- Blockquotes
+- Horizontal rules
+- Links and images
+- Footnotes
+- **Math Support**: LaTeX/MathML via MathJax
+
+### User Experience
+- **Light/Dark Theme**: Follows Windows system theme or manual toggle
+- **Welcome Screen**: Quick access to new documents, open files, and recent files
+- **Recent Files**: Quick access to recently opened documents
+- **Drag & Drop**: Drop markdown files directly onto the window
+- **Scroll Sync**: Editor and preview scroll together
+- **Font Size Control**: Ctrl+Mouse Wheel or menu options to zoom
+- **Status Bar**: Word count, line count, character count, cursor position
+
+### Data Safety
+- **Auto-Save**: Automatic draft saving every 30 seconds
+- **Crash Recovery**: Recover unsaved work after unexpected closure
+- **Unsaved Changes Warning**: Prompts before closing with unsaved changes
+- **Export to HTML**: Save rendered markdown as standalone HTML
+
+## Screenshots
+
+*Coming soon*
+
+## Requirements
+
+- Windows 10 (version 1809+) or Windows 11
+- .NET 8.0 Runtime
+- WebView2 Runtime (auto-installed on Windows 11, may need installation on Windows 10)
+
+## Installation
+
+### Option 1: Build from Source
+```bash
+# Clone the repository
+git clone https://github.com/SeanFellowes/SharperMD.git
+cd SharperMD
+
+# Build the project
+dotnet build -c Release
+
+# Run
+dotnet run --project src/SharperMD/SharperMD.csproj
+```
+
+### Option 2: Download Release
+*Coming soon*
+
+## Usage
+
+### Opening Files
+```bash
+# Open SharperMD directly
+SharperMD.exe
+
+# Open a specific markdown file
+SharperMD.exe "path/to/your/file.md"
+```
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+N` | New document |
+| `Ctrl+O` | Open file |
+| `Ctrl+S` | Save |
+| `Ctrl+Shift+S` | Save As |
+| `Ctrl+B` | Bold |
+| `Ctrl+I` | Italic |
+| `Ctrl+K` | Insert link |
+| `Ctrl+Shift+K` | Insert image |
+| `Ctrl++` | Increase font size |
+| `Ctrl+-` | Decrease font size |
+| `Ctrl+0` | Reset font size |
+| `Ctrl+Z` | Undo |
+| `Ctrl+Y` | Redo |
+| `Ctrl+F` | Find |
+| `Ctrl+H` | Replace |
+
+### File Association (Optional)
+To associate `.md` files with SharperMD:
+
+1. Right-click any `.md` file
+2. Select "Open with" → "Choose another app"
+3. Browse to `SharperMD.exe`
+4. Check "Always use this app to open .md files"
+
+## Technology Stack
+
+- **Framework**: .NET 8.0 / WPF
+- **Markdown Parser**: [Markdig](https://github.com/xoofx/markdig) - Extensible, fast, CommonMark compliant
+- **Text Editor**: [AvalonEdit](https://github.com/icsharpcode/AvalonEdit) - WPF-based text editor
+- **HTML Rendering**: [WebView2](https://developer.microsoft.com/en-us/microsoft-edge/webview2/) - Chromium-based rendering
+- **Code Highlighting**: [highlight.js](https://highlightjs.org/) - Syntax highlighting for code blocks
+- **Math Rendering**: [MathJax](https://www.mathjax.org/) - LaTeX math support
+- **MVVM**: [CommunityToolkit.Mvvm](https://github.com/CommunityToolkit/dotnet) - Modern MVVM toolkit
+
+## Project Structure
+
+```
+SharperMD/
+├── SharperMD.sln
+├── README.md
+└── src/
+    └── SharperMD/
+        ├── App.xaml(.cs)           # Application entry point
+        ├── MainWindow.xaml(.cs)    # Main window UI
+        ├── Models/
+        │   ├── AppSettings.cs      # Settings persistence
+        │   └── Document.cs         # Document model with dirty tracking
+        ├── ViewModels/
+        │   └── MainViewModel.cs    # Main view model
+        ├── Services/
+        │   ├── MarkdownService.cs  # Markdown to HTML conversion
+        │   └── ThemeService.cs     # Theme management
+        ├── Converters/
+        │   └── BoolToVisibilityConverter.cs
+        └── Resources/
+            └── MarkdownSyntax.xshd # Syntax highlighting definition
+```
+
+## Configuration
+
+Settings are stored in `%APPDATA%\SharperMD\settings.json`:
+
+```json
+{
+  "theme": "System",
+  "editorFontSize": 14,
+  "previewFontSize": 16,
+  "editorFontFamily": "Cascadia Mono, Consolas, Courier New",
+  "showWelcomeScreen": true,
+  "scrollSyncEnabled": true,
+  "autoSaveEnabled": true,
+  "autoSaveIntervalSeconds": 30,
+  "wordWrap": true,
+  "showLineNumbers": true,
+  "recentFiles": []
+}
+```
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [Markdig](https://github.com/xoofx/markdig) by Alexandre Mutel
+- [AvalonEdit](https://github.com/icsharpcode/AvalonEdit) by AvalonEdit Contributors
+- [highlight.js](https://highlightjs.org/)
+- [MathJax](https://www.mathjax.org/)
+- Icons and design inspiration from VS Code
+
+## Roadmap
+
+- [ ] Print support
+- [ ] PDF export
+- [ ] Custom themes
+- [ ] Plugin system
+- [ ] Vim keybindings option
+- [ ] Outline/TOC sidebar
+- [ ] Spell checking
+- [ ] Multiple document tabs
