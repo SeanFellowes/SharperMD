@@ -56,12 +56,19 @@ A beautiful, full-featured markdown viewer and editor for Windows 10/11, built w
 ## Requirements
 
 - Windows 10 (version 1809+) or Windows 11
-- .NET 8.0 Runtime
 - WebView2 Runtime (auto-installed on Windows 11, may need installation on Windows 10)
+
+**Note:** The installer includes all .NET dependencies, so no separate .NET installation is required.
 
 ## Installation
 
-### Option 1: Build from Source
+### Option 1: Download Installer (Recommended)
+1. Download `SharperMD-Setup-x.x.x.exe` from the [Releases](https://github.com/SeanFellowes/SharperMD/releases) page
+2. Run the installer
+3. Optionally check "Associate .md files with SharperMD" during installation
+4. Launch from Start Menu or Desktop shortcut
+
+### Option 2: Build from Source
 ```bash
 # Clone the repository
 git clone https://github.com/SeanFellowes/SharperMD.git
@@ -74,8 +81,24 @@ dotnet build -c Release
 dotnet run --project src/SharperMD/SharperMD.csproj
 ```
 
-### Option 2: Download Release
-*Coming soon*
+### Option 3: Build Installer from Source
+Prerequisites:
+- [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
+- [Inno Setup 6](https://jrsoftware.org/isinfo.php)
+
+```powershell
+# Clone and build installer
+git clone https://github.com/SeanFellowes/SharperMD.git
+cd SharperMD
+
+# Run the build script (PowerShell)
+.\build-installer.ps1
+
+# Or use the batch file
+.\build-installer.bat
+```
+
+The installer will be created at `installer/output/SharperMD-Setup-1.0.0.exe`
 
 ## Usage
 
