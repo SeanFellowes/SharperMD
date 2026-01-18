@@ -48,8 +48,11 @@ Name: "associatemd"; Description: "Associate .md files with SharperMD"; GroupDes
 Name: "associatemarkdown"; Description: "Associate .markdown files with SharperMD"; GroupDescription: "File Associations:"; Flags: unchecked
 
 [Files]
-; Main application files (from publish output)
-Source: "..\src\SharperMD\bin\Release\net8.0-windows\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Main application files
+; Option 1: Use regular build output (requires .NET 8 runtime on target machine)
+Source: "..\src\SharperMD\bin\Release\net8.0-windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Option 2: Use publish output for self-contained deployment (uncomment below, comment above)
+; Source: "..\src\SharperMD\bin\Release\net8.0-windows\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
