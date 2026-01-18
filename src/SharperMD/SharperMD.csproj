@@ -29,9 +29,6 @@
 
     <!-- MVVM toolkit -->
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
-
-    <!-- JSON settings storage -->
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
 
   <ItemGroup>
