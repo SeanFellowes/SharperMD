@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using ICSharpCode.AvalonEdit;
@@ -102,12 +103,22 @@ public partial class MainWindow : Window
     {
         try
         {
+            // Create WebView2 environment with user data folder in AppData
+            // This fixes permission issues when installed in Program Files
+            var userDataFolder = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "SharperMD", "WebView2");
+
+            Directory.CreateDirectory(userDataFolder);
+
+            var environment = await CoreWebView2Environment.CreateAsync(null, userDataFolder);
+
             // Initialize main preview WebView
-            await PreviewWebView.EnsureCoreWebView2Async();
+            await PreviewWebView.EnsureCoreWebView2Async(environment);
             _webViewInitialized = true;
 
             // Initialize preview-only WebView
-            await PreviewOnlyWebView.EnsureCoreWebView2Async();
+            await PreviewOnlyWebView.EnsureCoreWebView2Async(environment);
             _previewOnlyWebViewInitialized = true;
 
             // Configure WebView settings
