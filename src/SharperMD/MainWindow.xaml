@@ -223,7 +223,7 @@
                 <!-- Close Editor button on the right -->
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0">
                     <Button Content="Close Editor"
-                            Style="{StaticResource SecondaryButtonStyle}"
+                            Style="{StaticResource PrimaryButtonStyle}"
                             Command="{Binding StopEditingCommand}"
                             ToolTip="Close editor and view only (F2)"
                             Padding="12,4"/>
