@@ -141,83 +141,94 @@
                 BorderBrush="{DynamicResource ToolbarBorderBrush}"
                 BorderThickness="0,0,0,1"
                 Visibility="{Binding IsEditing, Converter={StaticResource BoolToVisibilityConverter}}">
-            <ToolBarTray Background="Transparent">
-                <ToolBar Background="Transparent" Band="0" BandIndex="0">
-                    <!-- File operations -->
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding NewDocumentCommand}" ToolTip="New (Ctrl+N)">
-                        <TextBlock Text="📄" FontSize="16"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding OpenFileCommand}" ToolTip="Open (Ctrl+O)">
-                        <TextBlock Text="📂" FontSize="16"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding SaveCommand}" ToolTip="Save (Ctrl+S)">
-                        <TextBlock Text="💾" FontSize="16"/>
-                    </Button>
-                    <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
+            <Grid>
+                <ToolBarTray Background="Transparent" HorizontalAlignment="Left">
+                    <ToolBar Background="Transparent" Band="0" BandIndex="0">
+                        <!-- File operations -->
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding NewDocumentCommand}" ToolTip="New (Ctrl+N)">
+                            <TextBlock Text="📄" FontSize="16"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding OpenFileCommand}" ToolTip="Open (Ctrl+O)">
+                            <TextBlock Text="📂" FontSize="16"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding SaveCommand}" ToolTip="Save (Ctrl+S)">
+                            <TextBlock Text="💾" FontSize="16"/>
+                        </Button>
+                        <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
 
-                    <!-- Text formatting -->
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertBoldCommand}" ToolTip="Bold (Ctrl+B)">
-                        <TextBlock Text="B" FontWeight="Bold" FontSize="14"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertItalicCommand}" ToolTip="Italic (Ctrl+I)">
-                        <TextBlock Text="I" FontStyle="Italic" FontSize="14"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertStrikethroughCommand}" ToolTip="Strikethrough">
-                        <TextBlock Text="S" TextDecorations="Strikethrough" FontSize="14"/>
-                    </Button>
-                    <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
+                        <!-- Text formatting -->
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertBoldCommand}" ToolTip="Bold (Ctrl+B)">
+                            <TextBlock Text="B" FontWeight="Bold" FontSize="14"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertItalicCommand}" ToolTip="Italic (Ctrl+I)">
+                            <TextBlock Text="I" FontStyle="Italic" FontSize="14"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertStrikethroughCommand}" ToolTip="Strikethrough">
+                            <TextBlock Text="S" TextDecorations="Strikethrough" FontSize="14"/>
+                        </Button>
+                        <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
 
-                    <!-- Headers -->
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertHeading1Command}" ToolTip="Heading 1">
-                        <TextBlock Text="H1" FontWeight="Bold" FontSize="12"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertHeading2Command}" ToolTip="Heading 2">
-                        <TextBlock Text="H2" FontWeight="Bold" FontSize="11"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertHeading3Command}" ToolTip="Heading 3">
-                        <TextBlock Text="H3" FontWeight="Bold" FontSize="10"/>
-                    </Button>
-                    <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
+                        <!-- Headers -->
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertHeading1Command}" ToolTip="Heading 1">
+                            <TextBlock Text="H1" FontWeight="Bold" FontSize="12"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertHeading2Command}" ToolTip="Heading 2">
+                            <TextBlock Text="H2" FontWeight="Bold" FontSize="11"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertHeading3Command}" ToolTip="Heading 3">
+                            <TextBlock Text="H3" FontWeight="Bold" FontSize="10"/>
+                        </Button>
+                        <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
 
-                    <!-- Lists -->
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertBulletListCommand}" ToolTip="Bullet List">
-                        <TextBlock Text="•≡" FontSize="14"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertNumberedListCommand}" ToolTip="Numbered List">
-                        <TextBlock Text="1." FontSize="14"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertTaskListCommand}" ToolTip="Task List">
-                        <TextBlock Text="☐" FontSize="14"/>
-                    </Button>
-                    <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
+                        <!-- Lists -->
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertBulletListCommand}" ToolTip="Bullet List">
+                            <TextBlock Text="•≡" FontSize="14"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertNumberedListCommand}" ToolTip="Numbered List">
+                            <TextBlock Text="1." FontSize="14"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertTaskListCommand}" ToolTip="Task List">
+                            <TextBlock Text="☐" FontSize="14"/>
+                        </Button>
+                        <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
 
-                    <!-- Insert elements -->
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertLinkCommand}" ToolTip="Insert Link (Ctrl+K)">
-                        <TextBlock Text="🔗" FontSize="14"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertImageCommand}" ToolTip="Insert Image (Ctrl+Shift+K)">
-                        <TextBlock Text="🖼" FontSize="14"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertCodeCommand}" ToolTip="Inline Code">
-                        <TextBlock Text="&lt;/&gt;" FontSize="12" FontFamily="Consolas"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertCodeBlockCommand}" ToolTip="Code Block">
-                        <TextBlock Text="```" FontSize="12" FontFamily="Consolas"/>
-                    </Button>
-                    <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
+                        <!-- Insert elements -->
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertLinkCommand}" ToolTip="Insert Link (Ctrl+K)">
+                            <TextBlock Text="🔗" FontSize="14"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertImageCommand}" ToolTip="Insert Image (Ctrl+Shift+K)">
+                            <TextBlock Text="🖼" FontSize="14"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertCodeCommand}" ToolTip="Inline Code">
+                            <TextBlock Text="&lt;/&gt;" FontSize="12" FontFamily="Consolas"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertCodeBlockCommand}" ToolTip="Code Block">
+                            <TextBlock Text="```" FontSize="12" FontFamily="Consolas"/>
+                        </Button>
+                        <Separator Style="{StaticResource ToolbarSeparatorStyle}"/>
 
-                    <!-- Other -->
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertQuoteCommand}" ToolTip="Quote">
-                        <TextBlock Text="❝" FontSize="16"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertTableCommand}" ToolTip="Table">
-                        <TextBlock Text="▦" FontSize="16"/>
-                    </Button>
-                    <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertHorizontalRuleCommand}" ToolTip="Horizontal Rule">
-                        <TextBlock Text="―" FontSize="16"/>
-                    </Button>
-                </ToolBar>
-            </ToolBarTray>
+                        <!-- Other -->
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertQuoteCommand}" ToolTip="Quote">
+                            <TextBlock Text="❝" FontSize="16"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertTableCommand}" ToolTip="Table">
+                            <TextBlock Text="▦" FontSize="16"/>
+                        </Button>
+                        <Button Style="{StaticResource ToolbarButtonStyle}" Command="{Binding InsertHorizontalRuleCommand}" ToolTip="Horizontal Rule">
+                            <TextBlock Text="―" FontSize="16"/>
+                        </Button>
+                    </ToolBar>
+                </ToolBarTray>
+
+                <!-- Close Editor button on the right -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="8,0">
+                    <Button Content="Close Editor"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding StopEditingCommand}"
+                            ToolTip="Close editor and view only (F2)"
+                            Padding="12,4"/>
+                </StackPanel>
+            </Grid>
         </Border>
 
         <!-- Main Content Area -->
@@ -332,26 +343,8 @@
 
                     <!-- Preview Panel -->
                     <Border Grid.Column="2" Background="{DynamicResource WindowBackgroundBrush}">
-                        <Grid>
-                            <wv2:WebView2 x:Name="PreviewWebView"
-                                          DefaultBackgroundColor="Transparent"/>
-
-                            <!-- Close/Save buttons overlay -->
-                            <StackPanel Orientation="Horizontal"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Top"
-                                        Margin="10">
-                                <Button Content="Save"
-                                        Style="{StaticResource PrimaryButtonStyle}"
-                                        Command="{Binding SaveCommand}"
-                                        Margin="0,0,8,0"
-                                        Padding="12,6"/>
-                                <Button Content="Close Editor"
-                                        Style="{StaticResource SecondaryButtonStyle}"
-                                        Command="{Binding StopEditingCommand}"
-                                        Padding="12,6"/>
-                            </StackPanel>
-                        </Grid>
+                        <wv2:WebView2 x:Name="PreviewWebView"
+                                      DefaultBackgroundColor="Transparent"/>
                     </Border>
                 </Grid>
 
