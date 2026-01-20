@@ -14,7 +14,7 @@
         Loaded="Window_Loaded"
         AllowDrop="True"
         Drop="Window_Drop"
-        DragOver="Window_DragOver">
+        DragOver="Window_DragOver" Icon="/icon.png">
 
     <Window.InputBindings>
         <!-- File shortcuts -->

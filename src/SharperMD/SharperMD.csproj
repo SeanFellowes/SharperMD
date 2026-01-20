@@ -15,7 +15,16 @@
     <Description>A beautiful markdown viewer and editor for Windows</Description>
     <Copyright>Copyright © 2024</Copyright>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="icon.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="icon.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- Markdown parsing with extensions -->
@@ -33,6 +42,10 @@
 
   <ItemGroup>
     <EmbeddedResource Include="Resources\MarkdownSyntax.xshd" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="icon.png" />
   </ItemGroup>
 
 </Project>
