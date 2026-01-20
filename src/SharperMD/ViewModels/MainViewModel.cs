@@ -1,3 +1,4 @@
+using System.IO;
 using System.Timers;
 using System.Windows;
 using System.Windows.Input;
@@ -367,6 +368,19 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void ToggleEditMode()
+    {
+        if (IsEditing)
+        {
+            StopEditing();
+        }
+        else
+        {
+            StartEditing();
+        }
+    }
+
+    [RelayCommand]
     private void Exit()
     {
         if (!CanCloseCurrentDocument()) return;
@@ -496,7 +510,10 @@ public partial class MainViewModel : ObservableObject
             "• .NET 8 / WPF\n" +
             "• Markdig (markdown parsing)\n" +
             "• AvalonEdit (text editor)\n" +
-            "• WebView2 (preview rendering)",
+            "• WebView2 (preview rendering)\n\n" +
+            "Created by:\n" +
+            "• Sean Fellowes - Project Creator & Design\n" +
+            "• Claude (Anthropic) - Development",
             "About SharperMD",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
