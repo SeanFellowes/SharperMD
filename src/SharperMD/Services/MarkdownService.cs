@@ -32,6 +32,7 @@ public class MarkdownService
             .UseAbbreviations()           // Abbreviations
             .UseGenericAttributes()       // Generic attributes
             .UseSmartyPants()             // Smart typography
+            .UseDiagrams()                // Mermaid diagram support
             .Build();
     }
 
@@ -81,13 +82,27 @@ public class MarkdownService
     <script src=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js""></script>
     <script src=""https://polyfill.io/v3/polyfill.min.js?features=es6""></script>
     <script id=""MathJax-script"" async src=""https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js""></script>
+    <!-- Mermaid diagram support -->
+    <script src=""https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js""></script>
 </head>
 <body>
     <div class=""markdown-body"">
 {html}
     </div>
     <script>
+        // Initialize Mermaid with theme
+        mermaid.initialize({{
+            startOnLoad: true,
+            theme: '{(isDarkTheme ? "dark" : "default")}',
+            securityLevel: 'loose',
+            flowchart: {{
+                useMaxWidth: true,
+                htmlLabels: true
+            }}
+        }});
+
         hljs.highlightAll();
+
         // Re-render MathJax if content changes
         if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {{
             MathJax.typesetPromise();
