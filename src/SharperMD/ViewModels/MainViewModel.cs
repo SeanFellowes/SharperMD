@@ -78,6 +78,9 @@ public partial class MainViewModel : ObservableObject
         PreviewFontSize = _settings.PreviewFontSize;
         ShowWelcomeScreen = _settings.ShowWelcomeScreen;
 
+        // Initialize statistics for the default document
+        UpdateStatistics(_currentDocument.Content);
+
         // Initialize theme
         _themeService.Initialize(_settings.Theme);
         _themeService.ThemeChanged += (s, isDark) =>
@@ -204,6 +207,7 @@ public partial class MainViewModel : ObservableObject
         ShowWelcomeScreen = false;
         IsEditing = true;
         UpdatePreview();
+        UpdateStatistics(CurrentDocument.Content);
         StatusText = "New document created";
     }
 
@@ -265,6 +269,7 @@ public partial class MainViewModel : ObservableObject
             ShowWelcomeScreen = false;
             IsEditing = false; // View mode when opening
             UpdatePreview();
+            UpdateStatistics(CurrentDocument.Content);
         }
         catch (Exception ex)
         {

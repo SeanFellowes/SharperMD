@@ -361,9 +361,14 @@ public partial class MainWindow : Window
 
         _findReplaceDialog.Show();
 
+        // Focus the appropriate field based on invocation method
         if (focusReplace)
         {
             _findReplaceDialog.FocusReplaceField();
+        }
+        else
+        {
+            _findReplaceDialog.FocusFindField();
         }
     }
 }

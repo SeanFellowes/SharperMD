@@ -17,17 +17,17 @@ public partial class FindReplaceDialog : Window
         InitializeComponent();
         _viewModel = new FindReplaceViewModel(editor, this);
         DataContext = _viewModel;
-
-        Loaded += (s, e) =>
-        {
-            FindTextBox.Focus();
-            FindTextBox.SelectAll();
-        };
     }
 
     public void SetSearchText(string text)
     {
         _viewModel.SearchText = text;
+    }
+
+    public void FocusFindField()
+    {
+        FindTextBox.Focus();
+        FindTextBox.SelectAll();
     }
 
     public void FocusReplaceField()
