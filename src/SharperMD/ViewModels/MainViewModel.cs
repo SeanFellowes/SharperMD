@@ -174,7 +174,15 @@ public partial class MainViewModel : ObservableObject
 
         var css = _themeService.GetPreviewCss();
         css = css.Replace("font-size: 16px", $"font-size: {PreviewFontSize}px");
-        PreviewHtml = _markdownService.ToFullHtml(CurrentDocument.Content, css, _themeService.IsDarkTheme);
+
+        // Get the document's directory for resolving relative image paths
+        string? documentBasePath = null;
+        if (!string.IsNullOrEmpty(CurrentDocument.FilePath))
+        {
+            documentBasePath = Path.GetDirectoryName(CurrentDocument.FilePath);
+        }
+
+        PreviewHtml = _markdownService.ToFullHtml(CurrentDocument.Content, css, _themeService.IsDarkTheme, documentBasePath);
     }
 
     private void OnAutoSaveTimerElapsed(object? sender, ElapsedEventArgs e)
