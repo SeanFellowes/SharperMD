@@ -29,6 +29,13 @@
             <SolidColorBrush x:Key="WelcomeBackgroundBrush" Color="#252526"/>
             <SolidColorBrush x:Key="WelcomeCardBrush" Color="#2D2D30"/>
 
+            <!-- Tab bar colors -->
+            <SolidColorBrush x:Key="TabBarBackgroundBrush" Color="#2D2D30"/>
+            <SolidColorBrush x:Key="TabBackgroundBrush" Color="#2D2D30"/>
+            <SolidColorBrush x:Key="TabSelectedBackgroundBrush" Color="#1E1E1E"/>
+            <SolidColorBrush x:Key="TabForegroundBrush" Color="#D4D4D4"/>
+            <SolidColorBrush x:Key="CloseButtonHoverBrush" Color="#E81123"/>
+
             <!-- Menu Style -->
             <Style TargetType="Menu">
                 <Setter Property="Background" Value="{DynamicResource MenuBackgroundBrush}"/>

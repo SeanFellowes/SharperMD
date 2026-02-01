@@ -5,6 +5,35 @@ All notable changes to SharperMD will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-02-02
+
+### Added
+- **Multiple Document Tabs**: Open and work with multiple markdown files simultaneously
+  - Tab bar with themed styling (light/dark)
+  - Close button on each tab with hover effect
+  - Right-click context menu: Close, Close Others, Close All, Copy Path
+  - Keyboard shortcuts: Ctrl+Tab (next), Ctrl+Shift+Tab (previous), Ctrl+W (close)
+  - Smart tab behavior: new files replace empty untitled tabs
+  - Duplicate detection: opening an already-open file switches to its tab
+- **Session Restore**: Automatically reopens all tabs from your last session on launch
+  - Persists open document paths and active tab index
+  - Gracefully handles missing files (skips with notification)
+- **Close Tab** menu item in File menu
+
+### Changed
+- Auto-save now iterates all dirty documents across tabs
+- Window close now prompts for each unsaved document
+- Updated keyboard shortcuts help dialog with tab shortcuts
+- Updated About dialog to version 1.1.0
+
+### Technical
+- Added `OpenDocuments` collection and `SelectedTabIndex` to MainViewModel
+- Added tab-related theme brushes for light/dark modes
+- Added per-document editor state tracking (caret, scroll position, selection)
+- Added session persistence to AppSettings
+
+---
+
 ## [1.0.0] - 2026-02-01
 
 ### Added
@@ -73,10 +102,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Future Plans
 
+- Spell checking (v1.2 - multi-language support)
 - Print support
 - PDF export
 - Custom themes
 - Outline/TOC sidebar
-- Spell checking
-- Multiple document tabs
 - Plugin system
+- Vim keybindings option

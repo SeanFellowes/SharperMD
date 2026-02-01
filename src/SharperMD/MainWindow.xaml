@@ -44,10 +44,16 @@
         <!-- Find/Replace -->
         <KeyBinding Key="F" Modifiers="Control" Command="Find"/>
         <KeyBinding Key="H" Modifiers="Control" Command="Replace"/>
+
+        <!-- Tab navigation -->
+        <KeyBinding Key="Tab" Modifiers="Control" Command="{Binding NextTabCommand}"/>
+        <KeyBinding Key="Tab" Modifiers="Control+Shift" Command="{Binding PreviousTabCommand}"/>
+        <KeyBinding Key="W" Modifiers="Control" Command="{Binding CloseTabCommand}"/>
     </Window.InputBindings>
 
     <Grid>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
@@ -62,6 +68,8 @@
                 <Separator/>
                 <MenuItem Header="_Save" Command="{Binding SaveCommand}" InputGestureText="Ctrl+S"/>
                 <MenuItem Header="Save _As..." Command="{Binding SaveAsCommand}" InputGestureText="Ctrl+Shift+S"/>
+                <Separator/>
+                <MenuItem Header="_Close Tab" Command="{Binding CloseTabCommand}" InputGestureText="Ctrl+W"/>
                 <Separator/>
                 <MenuItem Header="_Export to HTML..." Command="{Binding ExportCommand}"/>
                 <Separator/>
@@ -235,8 +243,110 @@
             </Grid>
         </Border>
 
+        <!-- Tab Bar -->
+        <Border Grid.Row="2"
+                Background="{DynamicResource TabBarBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="0,0,0,1"
+                Visibility="{Binding HasOpenDocuments, Converter={StaticResource BoolToVisibilityConverter}}">
+            <TabControl x:Name="DocumentTabs"
+                        ItemsSource="{Binding OpenDocuments}"
+                        SelectedIndex="{Binding SelectedTabIndex, Mode=TwoWay}"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Padding="0">
+                <TabControl.ItemContainerStyle>
+                    <Style TargetType="TabItem">
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="TabItem">
+                                    <Border x:Name="TabBorder"
+                                            Background="{DynamicResource TabBackgroundBrush}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="1,1,1,0"
+                                            CornerRadius="4,4,0,0"
+                                            Margin="2,4,0,0"
+                                            Padding="0">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock Grid.Column="0"
+                                                       Text="{Binding Title}"
+                                                       Foreground="{DynamicResource TabForegroundBrush}"
+                                                       VerticalAlignment="Center"
+                                                       Margin="12,6,4,6"
+                                                       TextTrimming="CharacterEllipsis"
+                                                       MaxWidth="200"
+                                                       ToolTip="{Binding DisplayPath}"/>
+
+                                            <Button Grid.Column="1"
+                                                    x:Name="CloseButton"
+                                                    Content="✕"
+                                                    FontSize="10"
+                                                    Width="18"
+                                                    Height="18"
+                                                    Margin="0,0,6,0"
+                                                    Padding="0"
+                                                    VerticalAlignment="Center"
+                                                    Background="Transparent"
+                                                    BorderThickness="0"
+                                                    Foreground="{DynamicResource TabForegroundBrush}"
+                                                    Opacity="0.6"
+                                                    Cursor="Hand"
+                                                    ToolTip="Close tab (Ctrl+W)"
+                                                    Command="{Binding DataContext.CloseTabCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding}"/>
+                                        </Grid>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource TabSelectedBackgroundBrush}"/>
+                                            <Setter TargetName="TabBorder" Property="BorderBrush" Value="{DynamicResource AccentBrush}"/>
+                                            <Setter TargetName="TabBorder" Property="BorderThickness" Value="1,2,1,0"/>
+                                        </Trigger>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="CloseButton" Property="Opacity" Value="1"/>
+                                        </Trigger>
+                                        <DataTrigger Binding="{Binding IsMouseOver, ElementName=CloseButton}" Value="True">
+                                            <Setter TargetName="CloseButton" Property="Background" Value="{DynamicResource CloseButtonHoverBrush}"/>
+                                        </DataTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                        <Setter Property="Tag" Value="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                        <Setter Property="ContextMenu">
+                            <Setter.Value>
+                                <ContextMenu>
+                                    <MenuItem Header="Close"
+                                              Command="{Binding PlacementTarget.Tag.CloseTabCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                              InputGestureText="Ctrl+W"/>
+                                    <MenuItem Header="Close Others"
+                                              Command="{Binding PlacementTarget.Tag.CloseOtherTabsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <MenuItem Header="Close All"
+                                              Command="{Binding PlacementTarget.Tag.CloseAllTabsCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                    <Separator/>
+                                    <MenuItem Header="Copy Path"
+                                              Command="{Binding PlacementTarget.Tag.CopyFilePathCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                </ContextMenu>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </TabControl.ItemContainerStyle>
+                <TabControl.ContentTemplate>
+                    <DataTemplate>
+                        <!-- Empty template - we manage content separately -->
+                    </DataTemplate>
+                </TabControl.ContentTemplate>
+            </TabControl>
+        </Border>
+
         <!-- Main Content Area -->
-        <Grid Grid.Row="2">
+        <Grid Grid.Row="3">
             <!-- Welcome Screen -->
             <Grid x:Name="WelcomePanel"
                   Visibility="{Binding ShowWelcomeScreen, Converter={StaticResource BoolToVisibilityConverter}}"
@@ -393,7 +503,7 @@
         </Grid>
 
         <!-- Status Bar -->
-        <Border Grid.Row="3"
+        <Border Grid.Row="4"
                 Background="{DynamicResource StatusBarBackgroundBrush}"
                 Padding="8,4">
             <Grid>

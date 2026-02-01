@@ -21,6 +21,9 @@ public partial class MainWindow : Window
     private bool _previewOnlyWebViewInitialized;
     private FindReplaceDialog? _findReplaceDialog;
 
+    // Per-document editor state (scroll position, caret)
+    private readonly Dictionary<string, EditorState> _editorStates = new();
+
     public MainWindow()
     {
         InitializeComponent();
@@ -39,8 +42,98 @@ public partial class MainWindow : Window
         _viewModel.InsertTextRequested += OnInsertTextRequested;
         _viewModel.InsertLinePrefixRequested += OnInsertLinePrefixRequested;
 
+        // Subscribe to tab switching events
+        _viewModel.TabSwitching += OnTabSwitching;
+        _viewModel.TabSwitched += OnTabSwitched;
+
         // Setup editor
         SetupEditor();
+    }
+
+    private void OnTabSwitching()
+    {
+        // Save current editor state before switching tabs
+        if (_viewModel.CurrentDocument != null)
+        {
+            SaveEditorState(_viewModel.CurrentDocument);
+        }
+    }
+
+    private void OnTabSwitched()
+    {
+        // Restore editor content and state for the new document
+        if (_viewModel.CurrentDocument != null)
+        {
+            _isUpdatingFromCode = true;
+            Editor.Text = _viewModel.CurrentDocument.Content;
+            _isUpdatingFromCode = false;
+
+            RestoreEditorState(_viewModel.CurrentDocument);
+        }
+    }
+
+    private void SaveEditorState(Models.Document doc)
+    {
+        var key = GetDocumentKey(doc);
+        _editorStates[key] = new EditorState
+        {
+            CaretOffset = Editor.CaretOffset,
+            VerticalOffset = Editor.TextArea.TextView.ScrollOffset.Y,
+            HorizontalOffset = Editor.TextArea.TextView.ScrollOffset.X,
+            SelectionStart = Editor.SelectionStart,
+            SelectionLength = Editor.SelectionLength
+        };
+    }
+
+    private void RestoreEditorState(Models.Document doc)
+    {
+        var key = GetDocumentKey(doc);
+        if (_editorStates.TryGetValue(key, out var state))
+        {
+            // Restore caret position (within bounds)
+            var offset = Math.Min(state.CaretOffset, Editor.Document.TextLength);
+            Editor.CaretOffset = offset;
+
+            // Restore selection (within bounds)
+            var selStart = Math.Min(state.SelectionStart, Editor.Document.TextLength);
+            var selLength = Math.Min(state.SelectionLength, Editor.Document.TextLength - selStart);
+            if (selLength > 0)
+            {
+                Editor.Select(selStart, selLength);
+            }
+
+            // Restore scroll position (needs to be done after layout)
+            Dispatcher.BeginInvoke(System.Windows.Threading.DispatcherPriority.Loaded, () =>
+            {
+                Editor.ScrollToVerticalOffset(state.VerticalOffset);
+                Editor.ScrollToHorizontalOffset(state.HorizontalOffset);
+            });
+        }
+        else
+        {
+            // New document - position at start
+            Editor.CaretOffset = 0;
+            Editor.ScrollToHome();
+        }
+
+        Editor.Focus();
+    }
+
+    private static string GetDocumentKey(Models.Document doc)
+    {
+        // Use file path if available, otherwise use hash code
+        return !string.IsNullOrEmpty(doc.FilePath)
+            ? doc.FilePath
+            : $"untitled_{doc.GetHashCode()}";
+    }
+
+    private class EditorState
+    {
+        public int CaretOffset { get; init; }
+        public double VerticalOffset { get; init; }
+        public double HorizontalOffset { get; init; }
+        public int SelectionStart { get; init; }
+        public int SelectionLength { get; init; }
     }
 
     private void SetupEditor()
@@ -158,15 +251,7 @@ public partial class MainWindow : Window
         {
             Dispatcher.Invoke(UpdatePreviewContent);
         }
-        else if (e.PropertyName == nameof(MainViewModel.CurrentDocument))
-        {
-            Dispatcher.Invoke(() =>
-            {
-                _isUpdatingFromCode = true;
-                Editor.Text = _viewModel.CurrentDocument?.Content ?? string.Empty;
-                _isUpdatingFromCode = false;
-            });
-        }
+        // Note: CurrentDocument changes are now handled via TabSwitched event
     }
 
     private void UpdatePreviewContent()
@@ -280,12 +365,15 @@ public partial class MainWindow : Window
 
     private void Window_Closing(object sender, CancelEventArgs e)
     {
-        if (!_viewModel.CanCloseCurrentDocument())
+        // Check all open documents for unsaved changes
+        if (!_viewModel.CanCloseAllDocuments())
         {
             e.Cancel = true;
             return;
         }
 
+        // Save session state (open documents, active tab)
+        _viewModel.SaveSessionState();
         _viewModel.SaveWindowState();
         _viewModel.Cleanup();
     }

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(cd:*)",
+      "Bash(dotnet build:*)",
+      "Bash(start SharperMD.exe)",
+      "Bash(taskkill:*)",
+      "Bash(powershell -Command \"Stop-Process -Name SharperMD -Force -ErrorAction SilentlyContinue\")"
+    ]
+  }
+}

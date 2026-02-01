@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Timers;
 using System.Windows;
@@ -23,6 +24,14 @@ public partial class MainViewModel : ObservableObject
 
     [ObservableProperty]
     private AppSettings _settings;
+
+    /// <summary>
+    /// Collection of all open documents (tabs)
+    /// </summary>
+    public ObservableCollection<Document> OpenDocuments { get; } = new();
+
+    [ObservableProperty]
+    private int _selectedTabIndex = -1;
 
     [ObservableProperty]
     private string _previewHtml = string.Empty;
@@ -63,6 +72,8 @@ public partial class MainViewModel : ObservableObject
         ? $"{CurrentDocument.Title} - SharperMD"
         : "SharperMD";
 
+    public bool HasOpenDocuments => OpenDocuments.Count > 0;
+
     public List<RecentFile> RecentFiles => Settings.RecentFiles.Where(f => f.Exists).ToList();
 
     public bool HasRecentFiles => RecentFiles.Any();
@@ -76,7 +87,10 @@ public partial class MainViewModel : ObservableObject
 
         EditorFontSize = _settings.EditorFontSize;
         PreviewFontSize = _settings.PreviewFontSize;
-        ShowWelcomeScreen = _settings.ShowWelcomeScreen;
+
+        // Only show welcome screen if user wants it AND there's no session to restore
+        var hasSessionToRestore = _settings.OpenDocumentPaths?.Any(File.Exists) == true;
+        ShowWelcomeScreen = _settings.ShowWelcomeScreen && !hasSessionToRestore;
 
         // Initialize statistics for the default document
         UpdateStatistics(_currentDocument.Content);
@@ -129,14 +143,25 @@ public partial class MainViewModel : ObservableObject
     {
         if (!string.IsNullOrEmpty(filePath) && File.Exists(filePath))
         {
+            // Opening a specific file from command line
             OpenFile(filePath);
             ShowWelcomeScreen = false;
             IsEditing = false; // View mode when opened with file
         }
-        else if (!_settings.ShowWelcomeScreen)
+        else
         {
-            NewDocument();
-            ShowWelcomeScreen = false;
+            // Try to restore previous session
+            RestoreSession();
+
+            if (OpenDocuments.Count == 0)
+            {
+                // No session to restore
+                if (!_settings.ShowWelcomeScreen)
+                {
+                    NewDocument();
+                    ShowWelcomeScreen = false;
+                }
+            }
         }
     }
 
@@ -189,17 +214,30 @@ public partial class MainViewModel : ObservableObject
     {
         Application.Current?.Dispatcher.Invoke(() =>
         {
-            if (CurrentDocument is { IsDirty: true } && _settings.AutoSaveEnabled)
+            if (!_settings.AutoSaveEnabled) return;
+
+            var savedCount = 0;
+            foreach (var doc in OpenDocuments)
             {
-                try
+                if (doc.IsDirty)
                 {
-                    CurrentDocument.SaveDraft();
-                    StatusText = $"Draft saved at {DateTime.Now:HH:mm:ss}";
+                    try
+                    {
+                        doc.SaveDraft();
+                        savedCount++;
+                    }
+                    catch
+                    {
+                        // Continue with other documents
+                    }
                 }
-                catch
-                {
-                    StatusText = "Auto-save failed";
-                }
+            }
+
+            if (savedCount > 0)
+            {
+                StatusText = savedCount == 1
+                    ? $"Draft saved at {DateTime.Now:HH:mm:ss}"
+                    : $"{savedCount} drafts saved at {DateTime.Now:HH:mm:ss}";
             }
         });
     }
@@ -209,9 +247,9 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void NewDocument()
     {
-        if (!CanCloseCurrentDocument()) return;
+        var newDoc = Document.CreateNew();
+        AddDocumentTab(newDoc, replaceEmpty: true);
 
-        CurrentDocument = Document.CreateNew();
         ShowWelcomeScreen = false;
         IsEditing = true;
         UpdatePreview();
@@ -222,8 +260,6 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void OpenFile(string? filePath = null)
     {
-        if (!CanCloseCurrentDocument()) return;
-
         if (string.IsNullOrEmpty(filePath))
         {
             var dialog = new OpenFileDialog
@@ -236,8 +272,19 @@ public partial class MainViewModel : ObservableObject
             filePath = dialog.FileName;
         }
 
+        // Check if file is already open - switch to that tab instead
+        var existingIndex = FindOpenDocumentIndex(filePath);
+        if (existingIndex >= 0)
+        {
+            SelectedTabIndex = existingIndex;
+            StatusText = $"Switched to: {Path.GetFileName(filePath)}";
+            return;
+        }
+
         try
         {
+            Document newDoc;
+
             // Check for draft recovery
             var draftContent = Document.GetDraftContent(filePath);
             if (draftContent != null)
@@ -254,22 +301,25 @@ public partial class MainViewModel : ObservableObject
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    CurrentDocument = Document.Open(filePath);
-                    CurrentDocument.Content = draftContent;
+                    newDoc = Document.Open(filePath);
+                    newDoc.Content = draftContent;
                     StatusText = "Draft recovered - remember to save";
                 }
                 else
                 {
-                    CurrentDocument = Document.Open(filePath);
-                    CurrentDocument.DeleteDraft();
+                    newDoc = Document.Open(filePath);
+                    newDoc.DeleteDraft();
                     StatusText = $"Opened: {filePath}";
                 }
             }
             else
             {
-                CurrentDocument = Document.Open(filePath);
+                newDoc = Document.Open(filePath);
                 StatusText = $"Opened: {filePath}";
             }
+
+            // Add as new tab (smart replace if current tab is empty)
+            AddDocumentTab(newDoc, replaceEmpty: true);
 
             _settings.AddRecentFile(filePath);
             OnPropertyChanged(nameof(RecentFiles));
@@ -396,8 +446,9 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void Exit()
     {
-        if (!CanCloseCurrentDocument()) return;
+        if (!CanCloseAllDocuments()) return;
 
+        SaveSessionState();
         SaveWindowState();
         Application.Current.Shutdown();
     }
@@ -511,9 +562,11 @@ public partial class MainViewModel : ObservableObject
     {
         MessageBox.Show(
             "SharperMD - Markdown Viewer & Editor\n\n" +
-            "Version 1.0.0\n\n" +
+            "Version 1.1.0\n\n" +
             "A beautiful, full-featured markdown editor for Windows.\n\n" +
             "Features:\n" +
+            "• Multiple document tabs\n" +
+            "• Session restore\n" +
             "• Live preview with syntax highlighting\n" +
             "• Support for tables, code blocks, math (LaTeX)\n" +
             "• Light and dark themes\n" +
@@ -560,7 +613,11 @@ public partial class MainViewModel : ObservableObject
             "  Ctrl++     Increase font size\n" +
             "  Ctrl+-     Decrease font size\n" +
             "  Ctrl+0     Reset font size\n" +
-            "  Ctrl+Mouse Wheel   Zoom",
+            "  Ctrl+Mouse Wheel   Zoom\n\n" +
+            "Tabs:\n" +
+            "  Ctrl+Tab   Next tab\n" +
+            "  Ctrl+Shift+Tab   Previous tab\n" +
+            "  Ctrl+W     Close tab",
             "Keyboard Shortcuts",
             MessageBoxButton.OK,
             MessageBoxImage.Information);
@@ -622,6 +679,18 @@ public partial class MainViewModel : ObservableObject
     public event Action<string, string, string>? InsertTextRequested;
     public event Action<string>? InsertLinePrefixRequested;
 
+    /// <summary>
+    /// Event fired when tab selection changes, before switching documents.
+    /// Handler should save current editor state (scroll position, caret).
+    /// </summary>
+    public event Action? TabSwitching;
+
+    /// <summary>
+    /// Event fired after tab selection changes.
+    /// Handler should restore editor content and state for the new document.
+    /// </summary>
+    public event Action? TabSwitched;
+
     private void RequestInsertText(string before, string after, string placeholder)
     {
         InsertTextRequested?.Invoke(before, after, placeholder);
@@ -630,6 +699,207 @@ public partial class MainViewModel : ObservableObject
     private void RequestInsertLinePrefix(string prefix)
     {
         InsertLinePrefixRequested?.Invoke(prefix);
+    }
+
+    #endregion
+
+    #region Tab Management
+
+    partial void OnSelectedTabIndexChanged(int oldValue, int newValue)
+    {
+        if (newValue < 0 || newValue >= OpenDocuments.Count)
+        {
+            CurrentDocument = null!;
+            return;
+        }
+
+        // Notify that we're about to switch - save current editor state
+        TabSwitching?.Invoke();
+
+        // Switch to the new document
+        CurrentDocument = OpenDocuments[newValue];
+        UpdatePreview();
+        UpdateStatistics(CurrentDocument?.Content ?? string.Empty);
+
+        // Notify that switch is complete - restore editor content
+        TabSwitched?.Invoke();
+    }
+
+    /// <summary>
+    /// Checks if a file is already open and returns its index, or -1 if not found
+    /// </summary>
+    private int FindOpenDocumentIndex(string filePath)
+    {
+        for (int i = 0; i < OpenDocuments.Count; i++)
+        {
+            if (OpenDocuments[i].FilePath.Equals(filePath, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Checks if current tab can be replaced (is new, empty, and not dirty)
+    /// </summary>
+    private bool CanReplaceCurrentTab()
+    {
+        return CurrentDocument is { IsNew: true, IsDirty: false }
+               && string.IsNullOrEmpty(CurrentDocument.Content);
+    }
+
+    /// <summary>
+    /// Adds a document to the tab collection, optionally replacing an empty tab
+    /// </summary>
+    private void AddDocumentTab(Document doc, bool replaceEmpty = true)
+    {
+        if (replaceEmpty && CanReplaceCurrentTab() && OpenDocuments.Count > 0)
+        {
+            // Replace the current empty tab
+            var index = SelectedTabIndex >= 0 ? SelectedTabIndex : 0;
+            OpenDocuments[index] = doc;
+            CurrentDocument = doc;
+            SubscribeToDocumentChanges(doc);
+        }
+        else
+        {
+            // Add as new tab
+            OpenDocuments.Add(doc);
+            SubscribeToDocumentChanges(doc);
+            SelectedTabIndex = OpenDocuments.Count - 1;
+        }
+
+        OnPropertyChanged(nameof(HasOpenDocuments));
+    }
+
+    private void SubscribeToDocumentChanges(Document doc)
+    {
+        doc.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(Document.Title) || e.PropertyName == nameof(Document.IsDirty))
+            {
+                if (doc == CurrentDocument)
+                {
+                    OnPropertyChanged(nameof(WindowTitle));
+                }
+            }
+        };
+    }
+
+    [RelayCommand]
+    private void CloseTab(Document? doc = null)
+    {
+        doc ??= CurrentDocument;
+        if (doc == null) return;
+
+        if (!CanCloseDocument(doc)) return;
+
+        var index = OpenDocuments.IndexOf(doc);
+        if (index < 0) return;
+
+        // Delete any draft for this document
+        doc.DeleteDraft();
+
+        OpenDocuments.RemoveAt(index);
+        OnPropertyChanged(nameof(HasOpenDocuments));
+
+        if (OpenDocuments.Count == 0)
+        {
+            // No more tabs - show welcome screen or create new document
+            if (_settings.ShowWelcomeScreen)
+            {
+                ShowWelcomeScreen = true;
+                CurrentDocument = null!;
+                SelectedTabIndex = -1;
+            }
+            else
+            {
+                // Create a new empty document
+                var newDoc = Document.CreateNew();
+                OpenDocuments.Add(newDoc);
+                SubscribeToDocumentChanges(newDoc);
+                SelectedTabIndex = 0;
+            }
+        }
+        else
+        {
+            // Select adjacent tab
+            SelectedTabIndex = Math.Min(index, OpenDocuments.Count - 1);
+        }
+    }
+
+    [RelayCommand]
+    private void CloseOtherTabs()
+    {
+        if (CurrentDocument == null) return;
+
+        var toClose = OpenDocuments.Where(d => d != CurrentDocument).ToList();
+        foreach (var doc in toClose)
+        {
+            if (!CanCloseDocument(doc)) return; // Cancel if any document can't be closed
+        }
+
+        foreach (var doc in toClose)
+        {
+            doc.DeleteDraft();
+            OpenDocuments.Remove(doc);
+        }
+
+        SelectedTabIndex = 0;
+        OnPropertyChanged(nameof(HasOpenDocuments));
+    }
+
+    [RelayCommand]
+    private void CloseAllTabs()
+    {
+        if (!CanCloseAllDocuments()) return;
+
+        foreach (var doc in OpenDocuments.ToList())
+        {
+            doc.DeleteDraft();
+        }
+
+        OpenDocuments.Clear();
+        OnPropertyChanged(nameof(HasOpenDocuments));
+
+        if (_settings.ShowWelcomeScreen)
+        {
+            ShowWelcomeScreen = true;
+            CurrentDocument = null!;
+            SelectedTabIndex = -1;
+        }
+        else
+        {
+            var newDoc = Document.CreateNew();
+            OpenDocuments.Add(newDoc);
+            SubscribeToDocumentChanges(newDoc);
+            SelectedTabIndex = 0;
+        }
+    }
+
+    [RelayCommand]
+    private void NextTab()
+    {
+        if (OpenDocuments.Count <= 1) return;
+        SelectedTabIndex = (SelectedTabIndex + 1) % OpenDocuments.Count;
+    }
+
+    [RelayCommand]
+    private void PreviousTab()
+    {
+        if (OpenDocuments.Count <= 1) return;
+        SelectedTabIndex = (SelectedTabIndex - 1 + OpenDocuments.Count) % OpenDocuments.Count;
+    }
+
+    [RelayCommand]
+    private void CopyFilePath()
+    {
+        if (CurrentDocument != null && !string.IsNullOrEmpty(CurrentDocument.FilePath))
+        {
+            Clipboard.SetText(CurrentDocument.FilePath);
+            StatusText = "File path copied to clipboard";
+        }
     }
 
     #endregion
@@ -746,14 +1016,89 @@ public partial class MainViewModel : ObservableObject
         _settings.Save();
     }
 
+    public void SaveSessionState()
+    {
+        // Save open document paths for session restore
+        _settings.OpenDocumentPaths = OpenDocuments
+            .Where(d => !d.IsNew && !string.IsNullOrEmpty(d.FilePath))
+            .Select(d => d.FilePath)
+            .ToList();
+        _settings.LastActiveTabIndex = SelectedTabIndex;
+        _settings.Save();
+    }
+
+    public void RestoreSession()
+    {
+        if (_settings.OpenDocumentPaths == null || _settings.OpenDocumentPaths.Count == 0)
+            return;
+
+        var restoredCount = 0;
+        var missingFiles = new List<string>();
+
+        foreach (var filePath in _settings.OpenDocumentPaths)
+        {
+            if (File.Exists(filePath))
+            {
+                try
+                {
+                    var doc = Document.Open(filePath);
+                    OpenDocuments.Add(doc);
+                    SubscribeToDocumentChanges(doc);
+                    restoredCount++;
+                }
+                catch
+                {
+                    missingFiles.Add(filePath);
+                }
+            }
+            else
+            {
+                missingFiles.Add(filePath);
+            }
+        }
+
+        if (restoredCount > 0)
+        {
+            OnPropertyChanged(nameof(HasOpenDocuments));
+
+            // Restore the active tab
+            var tabIndex = Math.Min(_settings.LastActiveTabIndex, OpenDocuments.Count - 1);
+            tabIndex = Math.Max(0, tabIndex);
+            SelectedTabIndex = tabIndex;
+
+            ShowWelcomeScreen = false;
+            StatusText = restoredCount == 1
+                ? "Session restored (1 file)"
+                : $"Session restored ({restoredCount} files)";
+        }
+
+        // Notify user of missing files
+        if (missingFiles.Count > 0)
+        {
+            var message = missingFiles.Count == 1
+                ? $"Could not restore: {Path.GetFileName(missingFiles[0])} (file not found)"
+                : $"Could not restore {missingFiles.Count} files (not found)";
+
+            if (restoredCount > 0)
+            {
+                StatusText = message;
+            }
+        }
+    }
+
     #endregion
 
     public bool CanCloseCurrentDocument()
     {
-        if (CurrentDocument is not { IsDirty: true }) return true;
+        return CanCloseDocument(CurrentDocument);
+    }
+
+    public bool CanCloseDocument(Document? doc)
+    {
+        if (doc is not { IsDirty: true }) return true;
 
         var result = MessageBox.Show(
-            $"'{CurrentDocument.FileName}' has unsaved changes.\n\n" +
+            $"'{doc.FileName}' has unsaved changes.\n\n" +
             "Do you want to save before closing?",
             "Unsaved Changes",
             MessageBoxButton.YesNoCancel,
@@ -762,10 +1107,67 @@ public partial class MainViewModel : ObservableObject
 
         return result switch
         {
-            MessageBoxResult.Yes => SaveAndReturn(),
-            MessageBoxResult.No => DiscardChanges(),
+            MessageBoxResult.Yes => SaveDocument(doc),
+            MessageBoxResult.No => DiscardDocumentChanges(doc),
             _ => false
         };
+    }
+
+    public bool CanCloseAllDocuments()
+    {
+        foreach (var doc in OpenDocuments)
+        {
+            if (!CanCloseDocument(doc)) return false;
+        }
+        return true;
+    }
+
+    private bool SaveDocument(Document doc)
+    {
+        if (doc.IsNew)
+        {
+            // Need to do Save As
+            var dialog = new SaveFileDialog
+            {
+                Filter = "Markdown files (*.md)|*.md|All files (*.*)|*.*",
+                Title = "Save Markdown File",
+                FileName = doc.FileName,
+                DefaultExt = ".md"
+            };
+
+            if (dialog.ShowDialog() != true) return false;
+
+            try
+            {
+                doc.SaveAs(dialog.FileName);
+                doc.DeleteDraft();
+                _settings.AddRecentFile(dialog.FileName);
+                OnPropertyChanged(nameof(RecentFiles));
+                OnPropertyChanged(nameof(HasRecentFiles));
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        try
+        {
+            doc.Save();
+            doc.DeleteDraft();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private bool DiscardDocumentChanges(Document doc)
+    {
+        doc.DeleteDraft();
+        return true;
     }
 
     private bool SaveAndReturn()

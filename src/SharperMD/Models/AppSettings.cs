@@ -66,6 +66,12 @@ public class AppSettings
     [JsonPropertyName("editorWidthRatio")]
     public double EditorWidthRatio { get; set; } = 0.5;
 
+    [JsonPropertyName("openDocumentPaths")]
+    public List<string> OpenDocumentPaths { get; set; } = new();
+
+    [JsonPropertyName("lastActiveTabIndex")]
+    public int LastActiveTabIndex { get; set; } = 0;
+
     public static AppSettings Load()
     {
         try

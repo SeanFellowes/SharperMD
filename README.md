@@ -9,6 +9,8 @@ A beautiful, full-featured markdown viewer and editor for Windows 10/11, built w
 ## Features
 
 ### Core Functionality
+- **Multiple Document Tabs**: Work with multiple markdown files simultaneously
+- **Session Restore**: Automatically reopens your last session's tabs on launch
 - **View Mode**: Open markdown files for distraction-free reading with beautiful rendering
 - **Edit Mode**: Side-by-side editor and live preview for real-time markdown authoring
 - **Command-line Support**: Open files directly from the command line or file explorer
@@ -154,6 +156,9 @@ SharperMD.exe "path/to/your/file.md"
 | `Ctrl+H` | Find & Replace |
 | `F3` | Find next |
 | `Shift+F3` | Find previous |
+| `Ctrl+Tab` | Next tab |
+| `Ctrl+Shift+Tab` | Previous tab |
+| `Ctrl+W` | Close tab |
 
 ### File Association (Optional)
 To associate `.md` files with SharperMD:
@@ -252,11 +257,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Roadmap
 
+- [x] Multiple document tabs (v1.1)
+- [ ] Spell checking (v1.2 - multi-language support)
 - [ ] Print support
 - [ ] PDF export
 - [ ] Custom themes
 - [ ] Plugin system
 - [ ] Vim keybindings option
 - [ ] Outline/TOC sidebar
-- [ ] Spell checking
-- [ ] Multiple document tabs

@@ -107,6 +107,13 @@ public class ThemeService
             resources["StatusBarForegroundBrush"] = new SolidColorBrush(Colors.White);
             resources["WelcomeBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(37, 37, 38));
             resources["WelcomeCardBrush"] = new SolidColorBrush(Color.FromRgb(45, 45, 48));
+
+            // Tab bar colors (dark)
+            resources["TabBarBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(45, 45, 48));
+            resources["TabBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(45, 45, 48));
+            resources["TabSelectedBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(30, 30, 30));
+            resources["TabForegroundBrush"] = new SolidColorBrush(Color.FromRgb(212, 212, 212));
+            resources["CloseButtonHoverBrush"] = new SolidColorBrush(Color.FromRgb(232, 17, 35));
         }
         else
         {
@@ -129,6 +136,13 @@ public class ThemeService
             resources["StatusBarForegroundBrush"] = new SolidColorBrush(Colors.White);
             resources["WelcomeBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(255, 255, 255));
             resources["WelcomeCardBrush"] = new SolidColorBrush(Color.FromRgb(246, 246, 246));
+
+            // Tab bar colors (light)
+            resources["TabBarBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(238, 238, 242));
+            resources["TabBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(238, 238, 242));
+            resources["TabSelectedBackgroundBrush"] = new SolidColorBrush(Color.FromRgb(255, 255, 255));
+            resources["TabForegroundBrush"] = new SolidColorBrush(Color.FromRgb(30, 30, 30));
+            resources["CloseButtonHoverBrush"] = new SolidColorBrush(Color.FromRgb(232, 17, 35));
         }
     }
 
