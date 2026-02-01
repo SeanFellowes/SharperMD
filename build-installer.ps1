@@ -77,5 +77,5 @@ Write-Host "========================================"
 Write-Host "Build completed successfully!" -ForegroundColor Green
 Write-Host "========================================"
 Write-Host ""
-Write-Host "Installer location: $OutputDir\SharperMD-Setup-1.1.1.exe"
+Write-Host "Installer location: $OutputDir\SharperMD-Setup-1.1.0.exe"
 Write-Host ""
