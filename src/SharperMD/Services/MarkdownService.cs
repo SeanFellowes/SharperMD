@@ -126,25 +126,22 @@ public class MarkdownService
     }
 
     /// <summary>
-    /// Resolve relative paths in HTML to absolute file:// URLs
+    /// Resolve relative image paths in HTML to base64 data URIs
     /// </summary>
     private string ResolveRelativePaths(string html, string basePath)
     {
-        // Regex to match src="..." and href="..." attributes
-        // Captures the attribute name and the path value
-        var pattern = @"(src|href)=""([^""]+)""";
+        // Regex to match src="..." attributes (primarily for images)
+        var srcPattern = @"src=""([^""]+)""";
 
-        return Regex.Replace(html, pattern, match =>
+        return Regex.Replace(html, srcPattern, match =>
         {
-            var attribute = match.Groups[1].Value;
-            var path = match.Groups[2].Value;
+            var path = match.Groups[1].Value;
 
             // Skip if already an absolute URL (http, https, data, file, etc.)
             if (path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
                 path.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
                 path.StartsWith("data:", StringComparison.OrdinalIgnoreCase) ||
-                path.StartsWith("file:", StringComparison.OrdinalIgnoreCase) ||
-                path.StartsWith("#")) // Anchor links
+                path.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
             {
                 return match.Value;
             }
@@ -157,9 +154,27 @@ public class MarkdownService
                 // Only convert if the file exists
                 if (File.Exists(absolutePath))
                 {
-                    // Convert to file:// URL format
-                    var fileUrl = new Uri(absolutePath).AbsoluteUri;
-                    return $@"{attribute}=""{fileUrl}""";
+                    // Get MIME type based on file extension
+                    var extension = Path.GetExtension(absolutePath).ToLowerInvariant();
+                    var mimeType = extension switch
+                    {
+                        ".png" => "image/png",
+                        ".jpg" or ".jpeg" => "image/jpeg",
+                        ".gif" => "image/gif",
+                        ".svg" => "image/svg+xml",
+                        ".webp" => "image/webp",
+                        ".bmp" => "image/bmp",
+                        ".ico" => "image/x-icon",
+                        _ => null
+                    };
+
+                    // Only convert known image types to data URIs
+                    if (mimeType != null)
+                    {
+                        var bytes = File.ReadAllBytes(absolutePath);
+                        var base64 = Convert.ToBase64String(bytes);
+                        return $@"src=""data:{mimeType};base64,{base64}""";
+                    }
                 }
             }
             catch
