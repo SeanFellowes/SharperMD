@@ -13,7 +13,7 @@
     <Company>SharperMD</Company>
     <Product>SharperMD - Markdown Viewer &amp; Editor</Product>
     <Description>A beautiful markdown viewer and editor for Windows</Description>
-    <Copyright>Copyright © 2024</Copyright>
+    <Copyright>Copyright © 2026</Copyright>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
