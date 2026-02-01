@@ -180,13 +180,13 @@ body {
     color: var(--color-fg);
     background-color: var(--color-bg);
     margin: 0;
-    padding: 24px;
+    padding: 16px 24px;
     max-width: 100%;
 }
 
 .markdown-body {
-    max-width: 980px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -328,13 +328,13 @@ body {
     color: var(--color-fg);
     background-color: var(--color-bg);
     margin: 0;
-    padding: 24px;
+    padding: 16px 24px;
     max-width: 100%;
 }
 
 .markdown-body {
-    max-width: 980px;
-    margin: 0 auto;
+    max-width: 100%;
+    margin: 0;
 }
 
 h1, h2, h3, h4, h5, h6 {
