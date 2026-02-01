@@ -625,17 +625,81 @@ public partial class MainViewModel : ObservableObject
 
     public void LoadWindowState(Window window)
     {
+        // Get the saved dimensions
+        var left = _settings.WindowLeft;
+        var top = _settings.WindowTop;
+        var width = _settings.WindowWidth;
+        var height = _settings.WindowHeight;
+
+        // Validate and adjust position to ensure window is visible on screen
+        var (adjustedLeft, adjustedTop, adjustedWidth, adjustedHeight) =
+            ValidateWindowPosition(left, top, width, height);
+
+        // Apply the validated position
+        window.Left = adjustedLeft;
+        window.Top = adjustedTop;
+        window.Width = adjustedWidth;
+        window.Height = adjustedHeight;
+
+        // Apply maximized state after setting position
         if (_settings.WindowMaximized)
         {
             window.WindowState = WindowState.Maximized;
         }
+    }
+
+    private (double left, double top, double width, double height) ValidateWindowPosition(
+        double left, double top, double width, double height)
+    {
+        // Get virtual screen bounds (all monitors combined)
+        var virtualLeft = SystemParameters.VirtualScreenLeft;
+        var virtualTop = SystemParameters.VirtualScreenTop;
+        var virtualWidth = SystemParameters.VirtualScreenWidth;
+        var virtualHeight = SystemParameters.VirtualScreenHeight;
+
+        // Get primary work area for defaults
+        var workArea = SystemParameters.WorkArea;
+
+        // Ensure minimum dimensions
+        width = Math.Max(width, 800);
+        height = Math.Max(height, 600);
+
+        // Ensure window doesn't exceed virtual screen size
+        width = Math.Min(width, virtualWidth);
+        height = Math.Min(height, virtualHeight);
+
+        // Check if window is at least partially visible on any monitor
+        var windowRight = left + width;
+        var windowBottom = top + height;
+        var virtualRight = virtualLeft + virtualWidth;
+        var virtualBottom = virtualTop + virtualHeight;
+
+        // Define minimum visible area (at least 100 pixels visible)
+        const int minVisible = 100;
+
+        bool isVisible = left < virtualRight - minVisible &&
+                        windowRight > virtualLeft + minVisible &&
+                        top < virtualBottom - minVisible &&
+                        windowBottom > virtualTop + minVisible;
+
+        if (!isVisible)
+        {
+            // Window is off-screen, center on primary work area
+            width = Math.Min(width, workArea.Width * 0.85);
+            height = Math.Min(height, workArea.Height * 0.85);
+            left = workArea.Left + (workArea.Width - width) / 2;
+            top = workArea.Top + (workArea.Height - height) / 2;
+        }
         else
         {
-            window.Left = _settings.WindowLeft;
-            window.Top = _settings.WindowTop;
-            window.Width = _settings.WindowWidth;
-            window.Height = _settings.WindowHeight;
+            // Ensure window is not too far off the visible area
+            if (left < virtualLeft) left = virtualLeft;
+            if (top < virtualTop) top = virtualTop;
+            if (left + width > virtualRight) left = virtualRight - width;
+            if (top + height > virtualBottom) top = virtualBottom - height;
         }
+
+        return (left, top, width, height);
     }
 
     public void SaveWindowState()
@@ -645,7 +709,20 @@ public partial class MainViewModel : ObservableObject
 
         _settings.WindowMaximized = window.WindowState == WindowState.Maximized;
 
-        if (window.WindowState == WindowState.Normal)
+        // Save the RestoreBounds when maximized, actual bounds when normal
+        if (window.WindowState == WindowState.Maximized)
+        {
+            // RestoreBounds contains the window size before maximizing
+            var bounds = window.RestoreBounds;
+            if (!bounds.IsEmpty && bounds.Width > 0 && bounds.Height > 0)
+            {
+                _settings.WindowLeft = bounds.Left;
+                _settings.WindowTop = bounds.Top;
+                _settings.WindowWidth = bounds.Width;
+                _settings.WindowHeight = bounds.Height;
+            }
+        }
+        else if (window.WindowState == WindowState.Normal)
         {
             _settings.WindowLeft = window.Left;
             _settings.WindowTop = window.Top;

@@ -8,6 +8,7 @@ using ICSharpCode.AvalonEdit.Highlighting;
 using ICSharpCode.AvalonEdit.Highlighting.Xshd;
 using Microsoft.Web.WebView2.Core;
 using SharperMD.ViewModels;
+using SharperMD.Views;
 using System.Xml;
 
 namespace SharperMD;
@@ -18,6 +19,7 @@ public partial class MainWindow : Window
     private bool _isUpdatingFromCode;
     private bool _webViewInitialized;
     private bool _previewOnlyWebViewInitialized;
+    private FindReplaceDialog? _findReplaceDialog;
 
     public MainWindow()
     {
@@ -25,6 +27,10 @@ public partial class MainWindow : Window
 
         _viewModel = new MainViewModel();
         DataContext = _viewModel;
+
+        // Set up Find/Replace command bindings
+        CommandBindings.Add(new CommandBinding(ApplicationCommands.Find, OnFind));
+        CommandBindings.Add(new CommandBinding(ApplicationCommands.Replace, OnReplace));
 
         // Subscribe to preview HTML changes
         _viewModel.PropertyChanged += ViewModel_PropertyChanged;
@@ -314,6 +320,50 @@ public partial class MainWindow : Window
             {
                 _viewModel.OpenFileCommand.Execute(files[0]);
             }
+        }
+    }
+
+    private void OnFind(object sender, ExecutedRoutedEventArgs e)
+    {
+        ShowFindReplaceDialog(focusReplace: false);
+    }
+
+    private void OnReplace(object sender, ExecutedRoutedEventArgs e)
+    {
+        ShowFindReplaceDialog(focusReplace: true);
+    }
+
+    private void ShowFindReplaceDialog(bool focusReplace)
+    {
+        // Ensure we're in edit mode to use Find/Replace
+        if (!_viewModel.IsEditing)
+        {
+            _viewModel.StartEditingCommand.Execute(null);
+        }
+
+        if (_findReplaceDialog == null)
+        {
+            _findReplaceDialog = new FindReplaceDialog(Editor);
+            _findReplaceDialog.Owner = this;
+            _findReplaceDialog.Closing += (s, e) =>
+            {
+                // Hide instead of close so we can reuse
+                e.Cancel = true;
+                _findReplaceDialog.Hide();
+            };
+        }
+
+        // Pre-populate with selected text
+        if (!string.IsNullOrEmpty(Editor.SelectedText) && !Editor.SelectedText.Contains('\n'))
+        {
+            _findReplaceDialog.SetSearchText(Editor.SelectedText);
+        }
+
+        _findReplaceDialog.Show();
+
+        if (focusReplace)
+        {
+            _findReplaceDialog.FocusReplaceField();
         }
     }
 }

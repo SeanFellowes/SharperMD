@@ -1,0 +1,104 @@
+<Window x:Class="SharperMD.Views.FindReplaceDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Find and Replace"
+        Height="200" Width="450"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Background="{DynamicResource WindowBackgroundBrush}"
+        Foreground="{DynamicResource WindowForegroundBrush}">
+
+    <Window.InputBindings>
+        <KeyBinding Key="Escape" Command="{Binding CloseCommand}"/>
+        <KeyBinding Key="Return" Command="{Binding FindNextCommand}"/>
+        <KeyBinding Key="F3" Command="{Binding FindNextCommand}"/>
+        <KeyBinding Key="F3" Modifiers="Shift" Command="{Binding FindPreviousCommand}"/>
+    </Window.InputBindings>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Find Row -->
+        <TextBlock Grid.Row="0" Grid.Column="0"
+                   Text="Find:"
+                   VerticalAlignment="Center"
+                   Margin="0,0,12,8"
+                   Foreground="{DynamicResource WindowForegroundBrush}"/>
+        <TextBox x:Name="FindTextBox"
+                 Grid.Row="0" Grid.Column="1"
+                 Margin="0,0,8,8"
+                 Padding="6,4"
+                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"/>
+        <StackPanel Grid.Row="0" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+            <Button Content="Find Next"
+                    Width="85"
+                    Margin="0,0,4,0"
+                    Command="{Binding FindNextCommand}"
+                    Style="{StaticResource PrimaryButtonStyle}"/>
+            <Button Content="Find Prev"
+                    Width="85"
+                    Command="{Binding FindPreviousCommand}"
+                    Style="{StaticResource SecondaryButtonStyle}"/>
+        </StackPanel>
+
+        <!-- Replace Row -->
+        <TextBlock Grid.Row="1" Grid.Column="0"
+                   Text="Replace:"
+                   VerticalAlignment="Center"
+                   Margin="0,0,12,8"
+                   Foreground="{DynamicResource WindowForegroundBrush}"/>
+        <TextBox x:Name="ReplaceTextBox"
+                 Grid.Row="1" Grid.Column="1"
+                 Margin="0,0,8,8"
+                 Padding="6,4"
+                 Text="{Binding ReplaceText, UpdateSourceTrigger=PropertyChanged}"/>
+        <StackPanel Grid.Row="1" Grid.Column="2" Orientation="Horizontal" Margin="0,0,0,8">
+            <Button Content="Replace"
+                    Width="85"
+                    Margin="0,0,4,0"
+                    Command="{Binding ReplaceCommand}"
+                    Style="{StaticResource SecondaryButtonStyle}"/>
+            <Button Content="Replace All"
+                    Width="85"
+                    Command="{Binding ReplaceAllCommand}"
+                    Style="{StaticResource SecondaryButtonStyle}"/>
+        </StackPanel>
+
+        <!-- Options Row -->
+        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                    Orientation="Horizontal"
+                    Margin="0,4,0,8">
+            <CheckBox Content="Match case"
+                      IsChecked="{Binding MatchCase}"
+                      Foreground="{DynamicResource WindowForegroundBrush}"
+                      Margin="0,0,16,0"/>
+            <CheckBox Content="Whole word"
+                      IsChecked="{Binding WholeWord}"
+                      Foreground="{DynamicResource WindowForegroundBrush}"
+                      Margin="0,0,16,0"/>
+            <CheckBox Content="Use regex"
+                      IsChecked="{Binding UseRegex}"
+                      Foreground="{DynamicResource WindowForegroundBrush}"/>
+        </StackPanel>
+
+        <!-- Status Row -->
+        <TextBlock x:Name="StatusText"
+                   Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3"
+                   Text="{Binding StatusMessage}"
+                   Foreground="{DynamicResource WindowForegroundBrush}"
+                   Opacity="0.7"
+                   FontSize="12"/>
+    </Grid>
+</Window>
