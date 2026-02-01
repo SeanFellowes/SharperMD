@@ -43,7 +43,11 @@ Email: example@email.com
 
 ## Images
 
-![Alt text for image](https://via.placeholder.com/150x100 "Placeholder Image")
+![SharperMD Logo](test-image.png "SharperMD Logo")
+
+Scaled with HTML:
+
+<img src="test-image.png" alt="SharperMD Logo Scaled" width="128" />
 
 ---
 
