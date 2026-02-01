@@ -40,6 +40,10 @@
         <!-- Toggle edit mode -->
         <KeyBinding Key="F2" Command="{Binding ToggleEditModeCommand}"/>
         <KeyBinding Key="E" Modifiers="Control" Command="{Binding ToggleEditModeCommand}"/>
+
+        <!-- Find/Replace -->
+        <KeyBinding Key="F" Modifiers="Control" Command="Find"/>
+        <KeyBinding Key="H" Modifiers="Control" Command="Replace"/>
     </Window.InputBindings>
 
     <Grid>

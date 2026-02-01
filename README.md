@@ -30,9 +30,13 @@ A beautiful, full-featured markdown viewer and editor for Windows 10/11, built w
 - Code blocks with syntax highlighting (supports 190+ languages including SQL, PowerShell, C#, Bash)
 - Blockquotes
 - Horizontal rules
-- Links and images
+- Links and images (including local images)
 - Footnotes
+- Definition lists
+- Abbreviations
+- Emojis
 - **Math Support**: LaTeX/MathML via MathJax
+- **Mermaid Diagrams**: Flowcharts, sequence diagrams, class diagrams, Gantt charts, and more
 
 ### User Experience
 - **Light/Dark Theme**: Follows Windows system theme or manual toggle
@@ -51,7 +55,23 @@ A beautiful, full-featured markdown viewer and editor for Windows 10/11, built w
 
 ## Screenshots
 
-*Coming soon*
+<!--
+HOW TO ADD SCREENSHOTS:
+1. Create a "screenshots" folder in the repo root
+2. Take screenshots of SharperMD showing:
+   - Dark mode viewing a document
+   - Light mode with side-by-side editing
+   - Mermaid diagram rendering
+   - Code block with syntax highlighting
+3. Save as PNG files (e.g., dark-mode.png, edit-mode.png)
+4. Uncomment and update the image references below
+
+![Dark Mode](screenshots/dark-mode.png)
+![Edit Mode](screenshots/edit-mode.png)
+![Mermaid Diagrams](screenshots/mermaid.png)
+-->
+
+*Screenshots coming soon - see [TEST-MARKDOWN.md](TEST-MARKDOWN.md) for a demonstration of all supported features*
 
 ## Requirements
 
@@ -119,6 +139,7 @@ SharperMD.exe "path/to/your/file.md"
 | `Ctrl+O` | Open file |
 | `Ctrl+S` | Save |
 | `Ctrl+Shift+S` | Save As |
+| `F2` or `Ctrl+E` | Toggle edit mode |
 | `Ctrl+B` | Bold |
 | `Ctrl+I` | Italic |
 | `Ctrl+K` | Insert link |
@@ -126,10 +147,13 @@ SharperMD.exe "path/to/your/file.md"
 | `Ctrl++` | Increase font size |
 | `Ctrl+-` | Decrease font size |
 | `Ctrl+0` | Reset font size |
+| `Ctrl+Scroll` | Zoom in/out |
 | `Ctrl+Z` | Undo |
 | `Ctrl+Y` | Redo |
 | `Ctrl+F` | Find |
-| `Ctrl+H` | Replace |
+| `Ctrl+H` | Find & Replace |
+| `F3` | Find next |
+| `Shift+F3` | Find previous |
 
 ### File Association (Optional)
 To associate `.md` files with SharperMD:
@@ -155,6 +179,10 @@ To associate `.md` files with SharperMD:
 SharperMD/
 ├── SharperMD.sln
 ├── README.md
+├── LICENSE
+├── CHANGELOG.md
+├── installer/                      # Inno Setup installer scripts
+│   └── SharperMD.iss
 └── src/
     └── SharperMD/
         ├── App.xaml(.cs)           # Application entry point
@@ -164,6 +192,8 @@ SharperMD/
         │   └── Document.cs         # Document model with dirty tracking
         ├── ViewModels/
         │   └── MainViewModel.cs    # Main view model
+        ├── Views/
+        │   └── FindReplaceDialog.xaml(.cs)  # Find & Replace dialog
         ├── Services/
         │   ├── MarkdownService.cs  # Markdown to HTML conversion
         │   └── ThemeService.cs     # Theme management

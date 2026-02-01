@@ -1,3 +1,5 @@
+using System.IO;
+using System.Text.RegularExpressions;
 using Markdig;
 using Markdig.Renderers;
 using Markdig.Syntax;
@@ -32,6 +34,7 @@ public class MarkdownService
             .UseAbbreviations()           // Abbreviations
             .UseGenericAttributes()       // Generic attributes
             .UseSmartyPants()             // Smart typography
+            .UseDiagrams()                // Mermaid diagram support
             .Build();
     }
 
@@ -57,9 +60,20 @@ public class MarkdownService
     /// <summary>
     /// Generate a full HTML document with styling for preview
     /// </summary>
-    public string ToFullHtml(string markdown, string css, bool isDarkTheme)
+    /// <param name="markdown">The markdown content</param>
+    /// <param name="css">CSS styles to apply</param>
+    /// <param name="isDarkTheme">Whether dark theme is active</param>
+    /// <param name="documentBasePath">Optional base path for resolving relative URLs (directory containing the document)</param>
+    public string ToFullHtml(string markdown, string css, bool isDarkTheme, string? documentBasePath = null)
     {
         var html = ToHtml(markdown);
+
+        // Resolve relative paths to absolute file:// URLs if a base path is provided
+        if (!string.IsNullOrEmpty(documentBasePath))
+        {
+            html = ResolveRelativePaths(html, documentBasePath);
+        }
+
         var theme = isDarkTheme ? "dark" : "light";
 
         return $@"<!DOCTYPE html>
@@ -81,13 +95,27 @@ public class MarkdownService
     <script src=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js""></script>
     <script src=""https://polyfill.io/v3/polyfill.min.js?features=es6""></script>
     <script id=""MathJax-script"" async src=""https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js""></script>
+    <!-- Mermaid diagram support -->
+    <script src=""https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js""></script>
 </head>
 <body>
     <div class=""markdown-body"">
 {html}
     </div>
     <script>
+        // Initialize Mermaid with theme
+        mermaid.initialize({{
+            startOnLoad: true,
+            theme: '{(isDarkTheme ? "dark" : "default")}',
+            securityLevel: 'loose',
+            flowchart: {{
+                useMaxWidth: true,
+                htmlLabels: true
+            }}
+        }});
+
         hljs.highlightAll();
+
         // Re-render MathJax if content changes
         if (typeof MathJax !== 'undefined' && MathJax.typesetPromise) {{
             MathJax.typesetPromise();
@@ -95,6 +123,67 @@ public class MarkdownService
     </script>
 </body>
 </html>";
+    }
+
+    /// <summary>
+    /// Resolve relative image paths in HTML to base64 data URIs
+    /// </summary>
+    private string ResolveRelativePaths(string html, string basePath)
+    {
+        // Regex to match src="..." attributes (primarily for images)
+        var srcPattern = @"src=""([^""]+)""";
+
+        return Regex.Replace(html, srcPattern, match =>
+        {
+            var path = match.Groups[1].Value;
+
+            // Skip if already an absolute URL (http, https, data, file, etc.)
+            if (path.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("data:", StringComparison.OrdinalIgnoreCase) ||
+                path.StartsWith("file:", StringComparison.OrdinalIgnoreCase))
+            {
+                return match.Value;
+            }
+
+            try
+            {
+                // Combine base path with relative path
+                var absolutePath = Path.GetFullPath(Path.Combine(basePath, path));
+
+                // Only convert if the file exists
+                if (File.Exists(absolutePath))
+                {
+                    // Get MIME type based on file extension
+                    var extension = Path.GetExtension(absolutePath).ToLowerInvariant();
+                    var mimeType = extension switch
+                    {
+                        ".png" => "image/png",
+                        ".jpg" or ".jpeg" => "image/jpeg",
+                        ".gif" => "image/gif",
+                        ".svg" => "image/svg+xml",
+                        ".webp" => "image/webp",
+                        ".bmp" => "image/bmp",
+                        ".ico" => "image/x-icon",
+                        _ => null
+                    };
+
+                    // Only convert known image types to data URIs
+                    if (mimeType != null)
+                    {
+                        var bytes = File.ReadAllBytes(absolutePath);
+                        var base64 = Convert.ToBase64String(bytes);
+                        return $@"src=""data:{mimeType};base64,{base64}""";
+                    }
+                }
+            }
+            catch
+            {
+                // If path resolution fails, return original
+            }
+
+            return match.Value;
+        });
     }
 
     /// <summary>
