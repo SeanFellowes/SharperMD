@@ -5,6 +5,23 @@ All notable changes to SharperMD will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-02-11
+
+### Added
+- **Azure DevOps Mermaid Syntax Support**: Render Mermaid diagrams using Azure DevOps Wiki syntax (`:::mermaid`)
+  - Automatic normalization of `:::mermaid ... :::` blocks to standard ` ```mermaid ... ``` ` syntax
+  - Full backward compatibility with existing standard Mermaid syntax
+  - Supports all Mermaid diagram types (flowchart, sequence, class, state, Gantt, pie charts)
+  - Multiple Mermaid blocks in one document handled correctly
+  - Preserves whitespace and formatting inside diagram blocks
+
+### Technical
+- Added `NormalizeMermaidSyntax()` method to MarkdownService for preprocessing
+- Uses regex with Singleline and Multiline options for robust pattern matching
+- Normalization happens before Markdig pipeline processing
+
+---
+
 ## [1.1.0] - 2026-02-02
 
 ### Added

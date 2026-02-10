@@ -562,7 +562,7 @@ public partial class MainViewModel : ObservableObject
     {
         MessageBox.Show(
             "SharperMD - Markdown Viewer & Editor\n\n" +
-            "Version 1.1.0\n\n" +
+            "Version 1.2.0\n\n" +
             "A beautiful, full-featured markdown editor for Windows.\n\n" +
             "Features:\n" +
             "• Multiple document tabs\n" +

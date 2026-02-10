@@ -46,7 +46,27 @@ public class MarkdownService
         if (string.IsNullOrEmpty(markdown))
             return string.Empty;
 
+        // Normalize Azure DevOps Mermaid syntax before processing
+        markdown = NormalizeMermaidSyntax(markdown);
+
         return Markdig.Markdown.ToHtml(markdown, _pipeline);
+    }
+
+    /// <summary>
+    /// Normalize Azure DevOps Mermaid syntax (:::mermaid) to standard syntax (```mermaid)
+    /// </summary>
+    private string NormalizeMermaidSyntax(string markdown)
+    {
+        // Pattern to match :::mermaid ... ::: blocks
+        // RegexOptions.Singleline allows . to match newlines
+        var pattern = @":::mermaid\s*\r?\n(.*?)\r?\n:::";
+        
+        return Regex.Replace(
+            markdown, 
+            pattern, 
+            "```mermaid\n$1\n```",
+            RegexOptions.Singleline | RegexOptions.Multiline
+        );
     }
 
     /// <summary>

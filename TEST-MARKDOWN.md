@@ -67,16 +67,16 @@ Scaled with HTML:
 ### Unordered List
 - Item 1
 - Item 2
-  - Nested item 2.1
-  - Nested item 2.2
-    - Deep nested item
+  - Nested item 2.1
+  - Nested item 2.2
+    - Deep nested item
 - Item 3
 
 ### Ordered List
 1. First item
 2. Second item
-   1. Nested item 2.1
-   2. Nested item 2.2
+   1. Nested item 2.1
+   2. Nested item 2.2
 3. Third item
 
 ### Task List
@@ -87,28 +87,30 @@ Scaled with HTML:
 
 ### Definition List
 Term 1
-:   Definition for term 1
+:   Definition for term 1
 
 Term 2
-:   Definition for term 2
-:   Another definition for term 2
+:   Definition for term 2
+:   Another definition for term 2
 
 ---
 
 ## Code Blocks
 
 ### C#
+
 ```csharp
 public class HelloWorld
 {
-    public static void Main(string[] args)
-    {
-        Console.WriteLine("Hello, SharperMD!");
-    }
+    public static void Main(string[] args)
+    {
+        Console.WriteLine("Hello, SharperMD!");
+    }
 }
 ```
 
 ### SQL
+
 ```sql
 SELECT u.Name, COUNT(o.Id) AS OrderCount
 FROM Users u
@@ -119,58 +121,60 @@ HAVING COUNT(o.Id) > 5
 ORDER BY OrderCount DESC;
 ```
 
-### PowerShell
+### PowerShell 
+
 ```powershell
 Get-ChildItem -Path C:\Projects -Recurse |
-    Where-Object { $_.Extension -eq ".md" } |
-    ForEach-Object {
-        Write-Host "Found: $($_.FullName)"
-    }
+    Where-Object { $_.Extension -eq ".md" } |
+    ForEach-Object {
+        Write-Host "Found: $($_.FullName)"
+    }
 ```
 
 ### JSON
+
 ```json
 {
-    "name": "SharperMD",
-    "version": "1.0.0",
-    "features": ["markdown", "mermaid", "math"],
-    "settings": {
-        "theme": "dark",
-        "fontSize": 14
-    }
+    "name": "SharperMD",
+    "version": "1.0.0",
+    "features": ["markdown", "mermaid", "math"],
+    "settings": {
+        "theme": "dark",
+        "fontSize": 14
+    }
 }
 ```
 
 ### YAML
 ```yaml
 application:
-  name: SharperMD
-  version: 1.0.0
-  features:
-    - markdown
-    - mermaid
-    - math
-  settings:
-    theme: dark
-    fontSize: 14
+  name: SharperMD
+  version: 1.0.0
+  features:
+    - markdown
+    - mermaid
+    - math
+  settings:
+    theme: dark
+    fontSize: 14
 ```
 
 ### Bash
 ```bash
 #!/bin/bash
 for file in *.md; do
-    echo "Processing: $file"
-    wc -w "$file"
+    echo "Processing: $file"
+    wc -w "$file"
 done
 ```
 
 ### XML
 ```xml
 <configuration>
-    <appSettings>
-        <add key="Theme" value="Dark" />
-        <add key="FontSize" value="14" />
-    </appSettings>
+    <appSettings>
+        <add key="Theme" value="Dark" />
+        <add key="FontSize" value="14" />
+    </appSettings>
 </configuration>
 ```
 
@@ -187,7 +191,7 @@ done
 
 ### Aligned Table
 | Left Aligned | Center Aligned | Right Aligned |
-|:-------------|:--------------:|--------------:|
+| :------------- | :--------------: | --------------: |
 | Left | Center | Right |
 | Data | Data | Data |
 | More | More | More |
@@ -247,86 +251,87 @@ $$
 ## Mermaid Diagrams
 
 ### Flowchart
-```mermaid
+:::mermaid
 flowchart TD
-    A[Start] --> B{Is it working?}
-    B -->|Yes| C[Excellent!]
-    B -->|No| D[Debug]
-    D --> E[Fix the issue]
-    E --> B
-    C --> F[End]
-```
+    A[Start] --> B{Is it working?}
+    B -->|Yes| C[Excellent!]
+    B -->|No| D[Debug]
+    D --> E[Fix the issue]
+    E --> B
+    C --> F[End]
+:::
 
 ### Sequence Diagram
-```mermaid
+:::mermaid
 sequenceDiagram
-    participant User
-    participant SharperMD
-    participant Markdig
-    participant WebView2
+    participant User
+    participant SharperMD
+    participant Markdig
+    participant WebView2
 
-    User->>SharperMD: Open .md file
-    SharperMD->>Markdig: Parse markdown
-    Markdig-->>SharperMD: Return HTML
-    SharperMD->>WebView2: Render HTML
-    WebView2-->>User: Display preview
-```
+    User->>SharperMD: Open .md file
+    SharperMD->>Markdig: Parse markdown
+    Markdig-->>SharperMD: Return HTML
+    SharperMD->>WebView2: Render HTML
+    WebView2-->>User: Display preview
+:::
 
 ### Class Diagram
-```mermaid
+:::mermaid
 classDiagram
-    class Document {
-        +string Title
-        +string Content
-        +bool IsDirty
-        +Save()
-        +Load()
-    }
-    class MainViewModel {
-        +Document CurrentDocument
-        +bool IsEditing
-        +OpenFile()
-        +SaveFile()
-    }
-    MainViewModel --> Document
-```
+    class Document {
+        +string Title
+        +string Content
+        +bool IsDirty
+        +Save()
+        +Load()
+    }
+    class MainViewModel {
+        +Document CurrentDocument
+        +bool IsEditing
+        +OpenFile()
+        +SaveFile()
+    }
+    MainViewModel --> Document
+:::
 
 ### State Diagram
-```mermaid
+:::mermaid
 stateDiagram-v2
-    [*] --> ViewMode
-    ViewMode --> EditMode: Click Edit
-    EditMode --> ViewMode: Click Close Editor
-    EditMode --> EditMode: Type content
-    ViewMode --> [*]: Close app
-```
+    [*] --> ViewMode
+    ViewMode --> EditMode: Click Edit
+    EditMode --> ViewMode: Click Close Editor
+    EditMode --> EditMode: Type content
+    ViewMode --> [*]: Close app
+:::
 
 ### Pie Chart
-```mermaid
-pie title SharperMD Features
+:::mermaid
+pie
+    title SharperMD Features
     "Markdown Parsing" : 30
     "Code Highlighting" : 25
     "Mermaid Diagrams" : 20
     "Math Support" : 15
     "Theming" : 10
-```
+:::
 
 ### Gantt Chart
-```mermaid
+:::mermaid
 gantt
-    title SharperMD Development
-    dateFormat  YYYY-MM-DD
-    section Core
-    Initial Setup       :done, 2024-01-01, 7d
-    Markdown Parser     :done, 2024-01-08, 5d
-    section Features
-    Code Highlighting   :done, 2024-01-13, 3d
-    Math Support        :done, 2024-01-16, 2d
-    Mermaid Support     :active, 2024-01-18, 2d
-    section Polish
-    Testing             :2024-01-20, 3d
-    Documentation       :2024-01-23, 2d
-```
+    title SharperMD Development
+    dateFormat  YYYY-MM-DD
+    section Core
+    Initial Setup       :done, 2024-01-01, 7d
+    Markdown Parser     :done, 2024-01-08, 5d
+    section Features
+    Code Highlighting   :done, 2024-01-13, 3d
+    Math Support        :done, 2024-01-16, 2d
+    Mermaid Support     :active, 2024-01-18, 2d
+    section Polish
+    Testing             :2024-01-20, 3d
+    Documentation       :2024-01-23, 2d
+:::
 
 ---
 
