@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Timers;
 using System.Windows;
 using System.Windows.Input;
@@ -934,55 +935,155 @@ public partial class MainViewModel : ObservableObject
     private (double left, double top, double width, double height) ValidateWindowPosition(
         double left, double top, double width, double height)
     {
-        // Get virtual screen bounds (all monitors combined)
-        var virtualLeft = SystemParameters.VirtualScreenLeft;
-        var virtualTop = SystemParameters.VirtualScreenTop;
-        var virtualWidth = SystemParameters.VirtualScreenWidth;
-        var virtualHeight = SystemParameters.VirtualScreenHeight;
+        // Enforce minimum window dimensions
+        const double minWidth = 800;
+        const double minHeight = 600;
+        width = Math.Max(width, minWidth);
+        height = Math.Max(height, minHeight);
 
-        // Get primary work area for defaults
-        var workArea = SystemParameters.WorkArea;
-
-        // Ensure minimum dimensions
-        width = Math.Max(width, 800);
-        height = Math.Max(height, 600);
-
-        // Ensure window doesn't exceed virtual screen size
-        width = Math.Min(width, virtualWidth);
-        height = Math.Min(height, virtualHeight);
-
-        // Check if window is at least partially visible on any monitor
-        var windowRight = left + width;
-        var windowBottom = top + height;
-        var virtualRight = virtualLeft + virtualWidth;
-        var virtualBottom = virtualTop + virtualHeight;
-
-        // Define minimum visible area (at least 100 pixels visible)
-        const int minVisible = 100;
-
-        bool isVisible = left < virtualRight - minVisible &&
-                        windowRight > virtualLeft + minVisible &&
-                        top < virtualBottom - minVisible &&
-                        windowBottom > virtualTop + minVisible;
-
-        if (!isVisible)
+        // Enumerate the work area of every currently connected monitor. If enumeration
+        // fails for any reason, fall back to the primary work area exposed by WPF.
+        var monitors = GetMonitorWorkAreas();
+        if (monitors.Count == 0)
         {
-            // Window is off-screen, center on primary work area
-            width = Math.Min(width, workArea.Width * 0.85);
-            height = Math.Min(height, workArea.Height * 0.85);
-            left = workArea.Left + (workArea.Width - width) / 2;
-            top = workArea.Top + (workArea.Height - height) / 2;
+            monitors.Add(new MonitorArea(SystemParameters.WorkArea, true));
         }
-        else
+
+        var savedRect = new Rect(left, top, width, height);
+
+        // If the saved window already fits entirely within a single monitor's work
+        // area, keep the user's last-known position untouched.
+        foreach (var mon in monitors)
         {
-            // Ensure window is not too far off the visible area
-            if (left < virtualLeft) left = virtualLeft;
-            if (top < virtualTop) top = virtualTop;
-            if (left + width > virtualRight) left = virtualRight - width;
-            if (top + height > virtualBottom) top = virtualBottom - height;
+            if (mon.WorkArea.Contains(savedRect))
+            {
+                return (left, top, width, height);
+            }
         }
+
+        // Otherwise pick the monitor that currently overlaps the saved rect the most
+        // (that's the user's "intended" monitor). If there's no overlap at all — e.g.
+        // the monitor the window was last on has been disconnected — fall back to the
+        // primary monitor, then to the first available one.
+        MonitorArea target = monitors.FirstOrDefault(m => m.IsPrimary, monitors[0]);
+        double bestOverlap = 0;
+        foreach (var mon in monitors)
+        {
+            var inter = Rect.Intersect(mon.WorkArea, savedRect);
+            double area = inter.IsEmpty ? 0 : inter.Width * inter.Height;
+            if (area > bestOverlap)
+            {
+                bestOverlap = area;
+                target = mon;
+            }
+        }
+
+        var targetArea = target.WorkArea;
+
+        // Cap dimensions to 90% of the target work area so the window sits comfortably
+        // inside the monitor, but never shrink below the minimum size (unless the
+        // monitor itself is smaller, in which case we match the work area).
+        const double maxFillRatio = 0.9;
+        width = Math.Min(width, targetArea.Width * maxFillRatio);
+        height = Math.Min(height, targetArea.Height * maxFillRatio);
+        width = Math.Max(width, Math.Min(minWidth, targetArea.Width));
+        height = Math.Max(height, Math.Min(minHeight, targetArea.Height));
+
+        // Center the window on the target monitor.
+        left = targetArea.Left + (targetArea.Width - width) / 2;
+        top = targetArea.Top + (targetArea.Height - height) / 2;
 
         return (left, top, width, height);
+    }
+
+    private readonly record struct MonitorArea(Rect WorkArea, bool IsPrimary);
+
+    /// <summary>
+    /// Enumerates the work area of every currently connected monitor, converted to
+    /// WPF device-independent units so the result can be compared directly with
+    /// <see cref="Window.Left"/> / <see cref="Window.Top"/>.
+    /// </summary>
+    private static List<MonitorArea> GetMonitorWorkAreas()
+    {
+        var result = new List<MonitorArea>();
+
+        // Monitor rects returned by Win32 are in physical pixels; WPF's Window
+        // coordinates are in DIUs scaled relative to the primary monitor. Derive the
+        // scale factor from the primary monitor so all monitor rects land in the same
+        // coordinate space WPF uses for Window.Left/Top/Width/Height.
+        int primaryPixelWidth = NativeMethods.GetSystemMetrics(NativeMethods.SM_CXSCREEN);
+        double pixelToDiu = primaryPixelWidth > 0
+            ? SystemParameters.PrimaryScreenWidth / primaryPixelWidth
+            : 1.0;
+
+        // Keep the delegate alive across the interop call.
+        NativeMethods.MonitorEnumProc callback = (IntPtr hMonitor, IntPtr hdc, ref NativeMethods.RECT rect, IntPtr data) =>
+        {
+            var info = new NativeMethods.MONITORINFO
+            {
+                cbSize = Marshal.SizeOf<NativeMethods.MONITORINFO>()
+            };
+
+            if (NativeMethods.GetMonitorInfo(hMonitor, ref info))
+            {
+                var w = info.rcWork;
+                var workArea = new Rect(
+                    w.Left * pixelToDiu,
+                    w.Top * pixelToDiu,
+                    (w.Right - w.Left) * pixelToDiu,
+                    (w.Bottom - w.Top) * pixelToDiu);
+                bool isPrimary = (info.dwFlags & NativeMethods.MONITORINFOF_PRIMARY) != 0;
+                result.Add(new MonitorArea(workArea, isPrimary));
+            }
+            return true;
+        };
+
+        try
+        {
+            NativeMethods.EnumDisplayMonitors(IntPtr.Zero, IntPtr.Zero, callback, IntPtr.Zero);
+        }
+        catch
+        {
+            // If the native enumeration fails the caller will fall back to the primary
+            // work area; there's nothing useful to do here.
+        }
+
+        return result;
+    }
+
+    private static class NativeMethods
+    {
+        public const int SM_CXSCREEN = 0;
+        public const uint MONITORINFOF_PRIMARY = 0x1;
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MONITORINFO
+        {
+            public int cbSize;
+            public RECT rcMonitor;
+            public RECT rcWork;
+            public uint dwFlags;
+        }
+
+        public delegate bool MonitorEnumProc(IntPtr hMonitor, IntPtr hdcMonitor, ref RECT lprcMonitor, IntPtr dwData);
+
+        [DllImport("user32.dll")]
+        public static extern bool EnumDisplayMonitors(IntPtr hdc, IntPtr lprcClip, MonitorEnumProc lpfnEnum, IntPtr dwData);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+        [DllImport("user32.dll")]
+        public static extern int GetSystemMetrics(int nIndex);
     }
 
     public void SaveWindowState()
