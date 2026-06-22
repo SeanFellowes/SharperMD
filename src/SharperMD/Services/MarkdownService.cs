@@ -11,6 +11,25 @@ namespace SharperMD.Services;
 /// </summary>
 public class MarkdownService
 {
+    /// <summary>
+    /// Virtual host name used to serve the bundled preview assets (highlight.js, MathJax,
+    /// Mermaid) from the local application folder via WebView2's
+    /// SetVirtualHostNameToFolderMapping. Keeping these assets local removes the runtime
+    /// dependency on third-party CDNs (and the associated supply-chain risk) and lets the
+    /// preview render fully offline.
+    /// </summary>
+    public const string AssetsHost = "sharpermd-assets";
+
+    /// <summary>Base URL for the bundled preview assets served from <see cref="AssetsHost"/>.</summary>
+    private const string AssetsBaseUrl = "https://" + AssetsHost;
+
+    // Pinned library versions. The locally bundled assets must be kept in sync with these
+    // versions; the CDN fallback (used for HTML export) references the same versions so that
+    // exported documents render identically to the in-app preview.
+    private const string HighlightJsVersion = "11.9.0";
+    private const string MathJaxVersion = "3.2.2";
+    private const string MermaidVersion = "10.9.3";
+
     private readonly MarkdownPipeline _pipeline;
 
     public MarkdownService()
@@ -84,7 +103,13 @@ public class MarkdownService
     /// <param name="css">CSS styles to apply</param>
     /// <param name="isDarkTheme">Whether dark theme is active</param>
     /// <param name="documentBasePath">Optional base path for resolving relative URLs (directory containing the document)</param>
-    public string ToFullHtml(string markdown, string css, bool isDarkTheme, string? documentBasePath = null)
+    /// <param name="useLocalAssets">
+    /// When true (the default, used for the in-app preview), the highlight.js/MathJax/Mermaid
+    /// assets are referenced from the locally bundled copies served via WebView2's virtual host.
+    /// When false (used for HTML export), they are referenced from public CDNs so the exported
+    /// standalone file remains portable when opened in an ordinary browser.
+    /// </param>
+    public string ToFullHtml(string markdown, string css, bool isDarkTheme, string? documentBasePath = null, bool useLocalAssets = true)
     {
         var html = ToHtml(markdown);
 
@@ -95,6 +120,7 @@ public class MarkdownService
         }
 
         var theme = isDarkTheme ? "dark" : "light";
+        var assetReferences = BuildAssetReferences(isDarkTheme, useLocalAssets);
 
         return $@"<!DOCTYPE html>
 <html lang=""en"" data-theme=""{theme}"">
@@ -104,18 +130,7 @@ public class MarkdownService
     <style>
 {css}
     </style>
-    <link rel=""stylesheet"" href=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/{(isDarkTheme ? "github-dark" : "github")}.min.css"">
-    <script src=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js""></script>
-    <script src=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/powershell.min.js""></script>
-    <script src=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js""></script>
-    <script src=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js""></script>
-    <script src=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/csharp.min.js""></script>
-    <script src=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js""></script>
-    <script src=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/xml.min.js""></script>
-    <script src=""https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js""></script>
-    <script id=""MathJax-script"" async src=""https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js""></script>
-    <!-- Mermaid diagram support -->
-    <script src=""https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js""></script>
+{assetReferences}
 </head>
 <body>
     <div class=""markdown-body"">
@@ -142,6 +157,49 @@ public class MarkdownService
     </script>
 </body>
 </html>";
+    }
+
+    /// <summary>
+    /// Build the &lt;head&gt; references for the preview assets (highlight.js, MathJax, Mermaid).
+    /// Uses the locally bundled assets for the in-app preview, or public CDNs (same pinned
+    /// versions) for portable HTML export.
+    /// </summary>
+    private static string BuildAssetReferences(bool isDarkTheme, bool useLocalAssets)
+    {
+        var hlTheme = isDarkTheme ? "github-dark" : "github";
+        string[] languages = { "powershell", "sql", "bash", "csharp", "json", "xml", "yaml" };
+
+        string hlStylesUrl, hlCoreUrl, hlLangBaseUrl, mathJaxUrl, mermaidUrl;
+
+        if (useLocalAssets)
+        {
+            hlStylesUrl = $"{AssetsBaseUrl}/highlight/styles/{hlTheme}.min.css";
+            hlCoreUrl = $"{AssetsBaseUrl}/highlight/highlight.min.js";
+            hlLangBaseUrl = $"{AssetsBaseUrl}/highlight/languages";
+            mathJaxUrl = $"{AssetsBaseUrl}/mathjax/tex-mml-chtml.js";
+            mermaidUrl = $"{AssetsBaseUrl}/mermaid/mermaid.min.js";
+        }
+        else
+        {
+            var hlCdn = $"https://cdnjs.cloudflare.com/ajax/libs/highlight.js/{HighlightJsVersion}";
+            hlStylesUrl = $"{hlCdn}/styles/{hlTheme}.min.css";
+            hlCoreUrl = $"{hlCdn}/highlight.min.js";
+            hlLangBaseUrl = $"{hlCdn}/languages";
+            mathJaxUrl = $"https://cdn.jsdelivr.net/npm/mathjax@{MathJaxVersion}/es5/tex-mml-chtml.js";
+            mermaidUrl = $"https://cdn.jsdelivr.net/npm/mermaid@{MermaidVersion}/dist/mermaid.min.js";
+        }
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine($@"    <link rel=""stylesheet"" href=""{hlStylesUrl}"">");
+        sb.AppendLine($@"    <script src=""{hlCoreUrl}""></script>");
+        foreach (var lang in languages)
+        {
+            sb.AppendLine($@"    <script src=""{hlLangBaseUrl}/{lang}.min.js""></script>");
+        }
+        sb.AppendLine($@"    <script id=""MathJax-script"" async src=""{mathJaxUrl}""></script>");
+        sb.AppendLine(@"    <!-- Mermaid diagram support -->");
+        sb.Append($@"    <script src=""{mermaidUrl}""></script>");
+        return sb.ToString();
     }
 
     /// <summary>

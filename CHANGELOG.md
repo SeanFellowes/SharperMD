@@ -5,6 +5,21 @@ All notable changes to SharperMD will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-06-22
+
+### Changed
+- **Self-hosted preview assets**: highlight.js, MathJax, and Mermaid are now bundled with the application and served locally via WebView2's virtual host mapping (`https://sharpermd-assets/...`) instead of being fetched from third-party CDNs (cdnjs, jsdelivr) at runtime.
+  - **Security**: removes the runtime supply-chain dependency on external CDNs. The exact library bytes are shipped and reviewed with the app, so a CDN compromise or domain takeover can no longer alter what the preview executes.
+  - **Offline**: the Markdown preview (syntax highlighting, math, and diagrams) now renders fully offline with no outbound network requests.
+  - Pinned versions: highlight.js 11.9.0, MathJax 3.2.2, Mermaid 10.9.3.
+
+### Technical
+- Added `MarkdownService.AssetsHost` and updated the preview HTML template to reference the local virtual host.
+- `ConfigureWebView` now calls `SetVirtualHostNameToFolderMapping` for each WebView2 instance, mapping the assets host to the local `assets` folder.
+- Bundled assets are included via the project's `assets/**` Content glob and copied to the output/publish folder.
+
+---
+
 ## [1.3.1] - 2026-06-22
 
 ### Security

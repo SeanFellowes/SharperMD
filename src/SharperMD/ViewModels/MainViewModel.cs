@@ -405,7 +405,22 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
-            File.WriteAllText(dialog.FileName, PreviewHtml);
+            // Regenerate the HTML referencing public CDNs (not the app's local virtual-host
+            // assets) so the exported standalone file renders correctly when opened in an
+            // ordinary browser outside SharperMD.
+            var css = _themeService.GetPreviewCss();
+            css = css.Replace("font-size: 16px", $"font-size: {PreviewFontSize}px");
+
+            string? documentBasePath = null;
+            if (!string.IsNullOrEmpty(CurrentDocument.FilePath))
+            {
+                documentBasePath = Path.GetDirectoryName(CurrentDocument.FilePath);
+            }
+
+            var exportHtml = _markdownService.ToFullHtml(
+                CurrentDocument.Content, css, _themeService.IsDarkTheme, documentBasePath, useLocalAssets: false);
+
+            File.WriteAllText(dialog.FileName, exportHtml);
             StatusText = $"Exported: {dialog.FileName}";
         }
         catch (Exception ex)
