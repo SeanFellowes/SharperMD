@@ -243,6 +243,15 @@ public partial class MainWindow : Window
         webView.Settings.IsStatusBarEnabled = false;
         webView.Settings.AreDefaultContextMenusEnabled = true;
         webView.Settings.IsWebMessageEnabled = true;
+
+        // Serve the bundled preview assets (highlight.js, MathJax, Mermaid) from the local
+        // application folder instead of third-party CDNs. This removes the runtime
+        // supply-chain dependency on external CDNs and lets the preview render fully offline.
+        var assetsFolder = Path.Combine(AppContext.BaseDirectory, "assets");
+        webView.SetVirtualHostNameToFolderMapping(
+            Services.MarkdownService.AssetsHost,
+            assetsFolder,
+            CoreWebView2HostResourceAccessKind.Allow);
     }
 
     private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
