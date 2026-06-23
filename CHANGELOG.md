@@ -5,6 +5,15 @@ All notable changes to SharperMD will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1] - 2026-06-22
+
+### Security
+- **Removed compromised `polyfill.io` dependency**: The Markdown preview template loaded a script from `polyfill.io`, a third-party domain hijacked in June 2024 and used to inject malicious code into embedding sites. The now-defunct domain returned an HTTP 401 Basic Auth challenge, which WebView2 surfaced as a blocking native credential dialog over the UI.
+  - The script only provided an ES6 polyfill for legacy browsers and is unnecessary in WebView2 (modern Chromium); MathJax, highlight.js, and Mermaid rendering are unaffected.
+  - Resolves a multi-second render delay caused by WebView2 waiting on the dead `polyfill.io` request to time out.
+
+---
+
 ## [1.2.0] - 2026-02-11
 
 ### Added
