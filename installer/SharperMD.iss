@@ -2,7 +2,7 @@
 ; Download Inno Setup from: https://jrsoftware.org/isinfo.php
 
 #define MyAppName "SharperMD"
-#define MyAppVersion "1.2.0"
+#define MyAppVersion "1.4.0"
 #define MyAppPublisher "Sean Fellowes"
 #define MyAppURL "https://github.com/SeanFellowes/SharperMD"
 #define MyAppExeName "SharperMD.exe"
@@ -50,9 +50,9 @@ Name: "associatemarkdown"; Description: "Associate .markdown files with SharperM
 [Files]
 ; Main application files
 ; Option 1: Use regular build output (requires .NET 8 runtime on target machine)
-Source: "..\src\SharperMD\bin\Release\net8.0-windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-; Option 2: Use publish output for self-contained deployment (uncomment below, comment above)
-; Source: "..\src\SharperMD\bin\Release\net8.0-windows\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Source: "..\src\SharperMD\bin\Release\net8.0-windows\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+; Option 2: Use publish output for self-contained deployment (bundles .NET runtime, no dependency on target machine)
+Source: "..\src\SharperMD\bin\Release\net8.0-windows\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

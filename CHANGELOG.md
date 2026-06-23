@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - **Offline**: the Markdown preview (syntax highlighting, math, and diagrams) now renders fully offline with no outbound network requests.
   - Pinned versions: highlight.js 11.9.0, MathJax 3.2.2, Mermaid 10.9.3.
 
+### Fixed
+- **About dialog version**: the About box showed a hardcoded version string (stale "1.2.0") regardless of the actual build. It now reads the assembly's informational version at runtime, so it always reflects the real version.
+
+### Packaging
+- **Self-contained installer**: the Inno Setup installer now bundles the self-contained publish output (the .NET 8 runtime is included), so target machines no longer need the .NET Desktop Runtime pre-installed.
+
 ### Technical
 - Added `MarkdownService.AssetsHost` and updated the preview HTML template to reference the local virtual host.
 - `ConfigureWebView` now calls `SetVirtualHostNameToFolderMapping` for each WebView2 instance, mapping the assets host to the local `assets` folder.

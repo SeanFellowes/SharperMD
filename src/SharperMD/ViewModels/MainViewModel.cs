@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Reflection;
 using System.Timers;
 using System.Windows;
 using System.Windows.Input;
@@ -575,9 +576,18 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     private void ShowAbout()
     {
+        var assembly = Assembly.GetExecutingAssembly();
+        // Prefer the informational version (e.g. "1.4.0+<commit>"), trimming any build metadata.
+        var informational = assembly
+            .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
+            .InformationalVersion;
+        var version = informational?.Split('+')[0]
+            ?? assembly.GetName().Version?.ToString(3)
+            ?? "unknown";
+
         MessageBox.Show(
             "SharperMD - Markdown Viewer & Editor\n\n" +
-            "Version 1.2.0\n\n" +
+            $"Version {version}\n\n" +
             "A beautiful, full-featured markdown editor for Windows.\n\n" +
             "Features:\n" +
             "• Multiple document tabs\n" +
